@@ -19,6 +19,11 @@ namespace cpp
         typedef x3::rule<statement_class, ast::statement> statement_type;
         typedef statement_type::id statement_id;
         BOOST_SPIRIT_DECLARE(statement_type);
+		
+		struct parameter_class;
+		typedef x3::rule<parameter_class,ast::parameter> parameter_type;
+		typedef parameter_type::id parameter_id;
+		BOOST_SPIRIT_DECLARE(parameter_type);
     }
     
     parser::statement_type const& statement();

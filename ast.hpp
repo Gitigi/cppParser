@@ -17,17 +17,19 @@ namespace cpp{namespace ast{
 	struct string;
 	struct expression;
 	struct signed_;
-	struct parameters;
+	struct argument;
 	struct triExpression;
 	struct identifier;
 	struct new_expr;
+	struct c_cast;
+	struct parameter;
 	struct Null
 	{
 		
 	};
 	
 	struct operand : x3::variant<Null,double,x3::forward_ast<symbol>,x3::forward_ast<identifier>,x3::forward_ast<string>,
-					x3::forward_ast<signed_>,x3::forward_ast<new_expr>,x3::forward_ast<parameters>,x3::forward_ast<expression>,x3::forward_ast<triExpression>>
+					x3::forward_ast<signed_>,x3::forward_ast<new_expr>,x3::forward_ast<c_cast>,x3::forward_ast<argument>,x3::forward_ast<expression>,x3::forward_ast<triExpression>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -67,7 +69,7 @@ namespace cpp{namespace ast{
 		std::list<operation> rest;
 	};
 	
-	struct parameters
+	struct argument
 	{
 		std::list<expression> params;
 	};
@@ -86,24 +88,62 @@ namespace cpp{namespace ast{
 		std::list<doubleOperation> rest;
 	};
 	
+	struct new_pointer
+	{
+		
+	};
+	
+	struct new_array
+	{
+		std::vector<expression> size;
+	};
+	
+	
+	
+	struct new_declaration_open
+	{
+		identifier type;
+		std::vector<x3::variant<new_pointer,new_array>> decl;
+	};
+	
+	struct new_function;
+	struct new_declaration_close
+	{
+		identifier type;
+		x3::variant<new_pointer,new_array,x3::forward_ast<new_function>> decl;
+	};
+	
+	struct new_declaration : x3::variant<new_declaration_close,new_declaration_open>
+	{
+		using base_type::base_type;
+		using base_type::operator=;
+	};
+	
 	struct new_expr
 	{
+		//identifier type;
+		new_declaration decl;
+		argument init;
+	};
+	
+	struct c_cast
+	{
+		identifier type;
 		expression expr;
 	};
-    
-}}
-
-namespace cpp{ namespace ast{
 	
-	namespace x3 = boost::spirit::x3;
 	
 	struct declarator_ptr;
+	struct declarator_rref;
+	struct declarator_lref;
+	struct declarator_pack;
 	struct declarator_noptr;
 	struct declarator_comp;
 	struct declarator;
 	
 	struct declarator : x3::variant<x3::forward_ast<declarator_comp>
-	,x3::forward_ast<declarator_ptr>>
+	,x3::forward_ast<declarator_ptr>,x3::forward_ast<declarator_lref>,
+	x3::forward_ast<declarator_rref>,x3::forward_ast<declarator_pack>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -117,26 +157,62 @@ namespace cpp{ namespace ast{
 	
 	struct declarator_ptr
 	{
+		identifier member;
+		std::vector<char> pointers;
+		declarator decl;
+	};
+	
+	struct declarator_lref
+	{
+		declarator decl;
+	};
+	
+	struct declarator_rref
+	{
+		declarator decl;
+	};
+	
+	struct declarator_pack
+	{
 		declarator decl;
 	};
 	
 	struct declarator_array
 	{
-		char brace;
-		expression size;
+		std::vector<expression> size;
 	};
 	
-	struct argument
+	
+	struct declarator_initializer
 	{
-		std::string type;
-		std::string name;
+		declarator decl;
+		boost::optional<expression> init;
+	};
+	
+	
+	struct variable_declaration
+    {
+		std::vector<std::string> spec;
+        identifier type;
+		std::vector<declarator_initializer> decl;
+    };
+	
+	struct parameter
+	{
+		std::vector<variable_declaration> param;
+	};
+	
+	struct new_function
+	{
+		new_array number;
+		parameter params;
 	};
 	
 	struct declarator_function
 	{
-		char brace;
-		std::list<argument> params;
+		parameter params;
 	};
+	
 	
 	struct declarator_func_array : x3::variant<declarator_function,declarator_array>
 	{
@@ -150,19 +226,13 @@ namespace cpp{ namespace ast{
 		boost::optional<declarator_func_array> func_array;
 	};
 	
-	struct declarator_initializer
-	{
-		declarator decl;
-		expression init;
-	};
+    
+}}
+
+namespace cpp{ namespace ast{
 	
+	namespace x3 = boost::spirit::x3;
 	
-	struct variable_declaration
-    {
-		std::vector<std::string> spec;
-        identifier type;
-		std::vector<declarator_initializer> decl;
-    };
 	
 	struct statement :
         x3::variant<variable_declaration,expression>

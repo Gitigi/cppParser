@@ -61,7 +61,7 @@ namespace cpp{namespace ast{
 			boost::apply_visitor(*this,value);
 		}
 		
-		void operator()(const parameters &value)
+		void operator()(const argument &value)
 		{
 			
 			for(const auto &i : value.params)
@@ -92,6 +92,14 @@ namespace cpp{namespace ast{
 		void operator()(const new_expr &value)
 		{
 			cout<<"new ";
+			//(*this)(value.expr);
+		}
+		
+		void operator()(const c_cast &value)
+		{
+			cout<<"(";
+			(*this)(value.type);
+			cout<<")";
 			(*this)(value.expr);
 		}
 		
@@ -106,7 +114,33 @@ namespace cpp{namespace ast{
 		
 		void operator()(const declarator_ptr &value)
 		{
-			cout<<" * ";
+			if(value.member.names.size() > 0)
+			{
+				printExpression()(value.member);
+				cout<<"::";
+			}
+			for(const auto &i : value.pointers)
+			{
+				cout<<"*";
+			}
+			(*this)(value.decl);
+		}
+		
+		void operator()(const declarator_lref &value)
+		{
+			cout<<"&";
+			(*this)(value.decl);
+		}
+		
+		void operator()(const declarator_rref &value)
+		{
+			cout<<"&&";
+			(*this)(value.decl);
+		}
+		
+		void operator()(const declarator_pack &value)
+		{
+			cout<<"...";
 			(*this)(value.decl);
 		}
 		
@@ -156,10 +190,10 @@ namespace cpp{namespace ast{
 		void operator()(const declarator_initializer &value)
 		{
 			(*this)(value.decl);
-			//if(value.init)
+			if(value.init)
 			{
 				cout<<" = ";
-				(*this)(value.init);
+				(*this)(*value.init);
 			}
 			
 		}

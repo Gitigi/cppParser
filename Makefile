@@ -1,6 +1,6 @@
 CXX = g++
 CXXFLAGS = -c -std=c++14
-OBJS = main.o expression.o statement.o
+OBJS = main.o  statement.o expression.o
 LIBS = -l boost_system
 
 all : main
