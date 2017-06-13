@@ -98,6 +98,7 @@ namespace cpp{namespace parser{
 	const x3::rule<struct declarator_init,ast::declarator_init>declarator_init = "declarator_init";
 	const x3::rule<struct declarator_initializer,ast::declarator_initializer> declarator_initializer = "declarator_initializer";
 	const parameter_type parameter("parameter");
+	const x3::rule<struct parameter_single,ast::parameter> parameter_single = "parameter_single";
 	
 	auto const declarator_noptr_def = sym | (lit('(') >> declarator >> lit(')'));
 	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') >> -declarator;
@@ -127,6 +128,7 @@ namespace cpp{namespace parser{
 	
 	
 	auto const parameter_def = parameter_type() %= variable_declaration[check_type2] % ",";
+	auto const parameter_single_def = x3::rule<struct parameter_single,ast::parameter>() %= variable_declaration[check_type2] % ",";
 	
 	//auto symbol_def = x3::lexeme[!reservedWords>>&(alpha|lit('_'))>>+(alnum|char_('_'))];
     auto string_def = x3::lexeme[(lit('"')>>*(char_-'"')>>lit('"'))|(lit('\'')>>*(char_-'\'')>>lit('\''))];
@@ -250,7 +252,7 @@ namespace cpp{namespace parser{
 		bitwiseAnd,bitwiseXor,bitwiseOr,
 		logicalAnd,logicalOr,conditional,assignment,
 		throw_expr,comma,
-		parameter,variable_declaration_single,variable_declaration,
+		parameter,parameter_single,variable_declaration_single,variable_declaration,
 		declarator_noptr,
 		declarator_ptr,
 		declarator_lref,
