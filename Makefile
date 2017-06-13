@@ -1,7 +1,7 @@
-CXX = g++
+CXX = g++ 
 CXXFLAGS = -c -std=c++14
-OBJS = main.o expression.o directive.o statement.o
-LIBS = -l boost_system -lboost_iostreams
+OBJS = main.o expression.o directive.o variable_declaration.o statement.o
+LIBS = -lboost_system -lboost_iostreams
 
 all : main
 
@@ -19,6 +19,9 @@ statement.o : statement.cpp statement.hpp statement_def.hpp common.hpp ast.hpp a
 	
 directive.o : directive.cpp directive.hpp directive_def.hpp common.hpp ast.hpp ast_adapted.hpp
 	$(CXX) $(CXXFLAGS) directive.cpp -o directive.o
+    
+variable_declaration.o : variable_declaration.cpp variable_declaration.hpp variable_declaration_def.hpp
+	$(CXX) $(CXXFLAGS) variable_declaration.cpp -o variable_declaration.o
 	
 clean :
 	rm $(OBJS) main

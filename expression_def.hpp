@@ -6,6 +6,7 @@
 #include "ast.hpp"
 #include "ast_adapted.hpp"
 #include "expression.hpp"
+#include "variable_declaration.hpp"
 #include "common.hpp"
 #include "error_handler.hpp"
 
@@ -16,12 +17,18 @@ namespace cpp{namespace parser{
 	namespace x3 = boost::spirit::x3;
 	using x3::lit;
 	
+    namespace {
+        IMPORT_PARSER(variable_declaration);
+        IMPORT_PARSER(variable_declaration_single);
+        IMPORT_PARSER(parameter);
+	}
+    
+    
 	//x3::symbols<std::string,std::string>bitwise_and_op;
 	
 	struct access_expr_class;
 	struct dotBracket_class;
 	struct newOperator_class;
-	struct argument_expr_class;
 	struct postfix_expr_class;
 	struct unary_expr_class;
 	struct primary_expr_class;
@@ -36,7 +43,6 @@ namespace cpp{namespace parser{
 	struct logicalAnd_class;
 	struct logicalOr_class;
 	struct conditional_class;
-	struct assignment_class;
 	struct comma_class;
 	struct expression_class;
 	struct triExpression_class;
@@ -64,7 +70,7 @@ namespace cpp{namespace parser{
 	x3::rule<logicalAnd_class,ast::expression>logicalAnd = "logicalAnd";
 	x3::rule<logicalOr_class,ast::expression>logicalOr = "logicalOr";
 	x3::rule<conditional_class,ast::triExpression>conditional = "conditional";
-	x3::rule<assignment_class,ast::expression>assignment = "assignment";
+	assignment_type assignment = "assignment";
 	x3::rule<comma_class,ast::expression>comma = "comma";
 	x3::rule<postfix_expr_class,ast::signed_> postfix_expr = "postfix_expr";
 	x3::rule<class access,ast::operand>access = "access";
@@ -72,6 +78,7 @@ namespace cpp{namespace parser{
 	x3::rule<multiplicative_expr_class,ast::expression>multiplicative_expr = "multiplicative_expr";
 	x3::rule<unary_expr_class,ast::operand>unary_expr = "unary_expr";
 	x3::rule<class new_array,ast::new_array>new_array = "new_array";
+    x3::rule<class new_array_single,ast::expression> new_array_single = "new_array_single";
 	x3::rule<class new_pointer,ast::new_pointer>new_pointer = "new_pointer";
 	x3::rule<class new_function,ast::new_function>new_function = "new_function";
 	x3::rule<class new_declaration_open,ast::new_declaration_open> new_declaration_open= "new_declatation_open";
@@ -80,71 +87,13 @@ namespace cpp{namespace parser{
 	x3::rule<class new_expr,ast::new_expr>new_expr = "new_expr";
 	x3::rule<class c_cast,ast::c_cast>c_cast="c_cast";
 	x3::rule<primary_expr_class,ast::operand>primary_expr = "primary_expr";
-	x3::rule<argument_expr_class,ast::argument>argument_expr = "argument_expr";
+	argument_expr_type argument_expr = "argument_expr";
 	x3::rule<access_expr_class,ast::expression>access_expr = "access_expr";
 	typedef x3::rule<dotBracket_class,ast::expression> dotBracket_type;
     dotBracket_type dotBracket = "dotBracket";
 	x3::rule<triExpression_class,ast::triExpression>triExpression = "triExpression";
 	x3::rule<class throw_expr,ast::signed_>throw_expr = "throw_expr";
 	
-	//variable declaration
-	const variable_declaration_type variable_declaration("variable_declaration");
-	const variable_declaration_single_type variable_declaration_single("variable_declaration_single");
-	const x3::rule<struct declarator,ast::declarator>declarator="declarator";
-	const x3::rule<struct declarator_noptr,ast::declarator_noptr>declarator_noptr = "declarator_noptr";
-	const x3::rule<struct declarator_ptr,ast::declarator_ptr>declarator_ptr = "declarator_ptr";
-	const x3::rule<struct declarator_lref,ast::declarator_lref>declarator_lref="declarator_lref";
-	const x3::rule<struct declarator_rref,ast::declarator_rref>declarator_rref="declarator_rref";
-	const x3::rule<struct declarator_pack,ast::declarator_pack>declarator_pack="declarator_pack";
-	const x3::rule<struct declarator_array,ast::declarator_array>declarator_array = "declarator_array";
-	const x3::rule<struct declarator_function,ast::declarator_function>declarator_function = "declarator_function";
-	const x3::rule<struct declarator_func_array,ast::declarator_func_array>declarator_func_array = "declarator_func_array";
-	const x3::rule<struct declarator_comp,ast::declarator_comp>declarator_comp = "declarator_comp";
-	const x3::rule<struct declarator_init,ast::declarator_init>declarator_init = "declarator_init";
-	const declarator_initializer_type declarator_initializer = "declarator_initializer";
-	const parameter_type parameter("parameter");
-    const function_declarator_type function_declarator("function_declarator");
-    const x3::rule<struct aggregate_item,ast::aggregate_item>aggregate_item = "aggregate_item";
-    const x3::rule<struct aggregate,ast::aggregate>aggregate = "aggregate";
-	
-    auto const aggregate_item_def = assignment | aggregate;
-    auto const aggregate_def = lit("{")>>-(aggregate_item % ",")>>lit("}");
-	auto const declarator_noptr_def = identifier | (lit('(') >> declarator >> lit(')'));
-	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') >> -declarator;
-	auto const declarator_lref_def = lit("&")>> -declarator;
-	auto const declarator_rref_def = lit("&&")>> -declarator;
-	auto const declarator_pack_def = lit("...")>> -declarator;
-	auto const declarator_array_single = x3::rule<struct declarator_array_single,ast::expression>()=lit('[')>>(expression|x3::eps)>>lit(']');
-	auto const declarator_array_def = +(declarator_array_single);
-	auto const declarator_function_def = lit('(')>>-(parameter)>>lit(')')
-        >>-(((lit("=")>>lit("0")) | lit("overide")|lit("final")));
-	auto const declarator_func_array_def = declarator_function | declarator_array;
-	auto const declarator_comp_def = declarator_noptr>>-declarator_func_array;
-	auto const declarator_def =  declarator_ptr|declarator_comp|declarator_rref|declarator_lref|declarator_pack;
-	auto const declarator_init_def = (lit('=')>>assignment)|(lit('=')>>aggregate) | (lit('(')>>argument_expr>>lit(')'))| (aggregate);
-	auto const declarator_initializer_def = -declarator>>-x3::omit[lit(":")>>x3::double_] >> -(declarator_init);
-	
-	static auto add_spec = [](auto &ctx){
-		x3::_val(ctx).spec.push_back(x3::_attr(ctx));
-	};
-	
-	static auto check_long = [](auto &ctx){
-		auto &variable = x3::_val(ctx);
-		if(variable.type.names.size() == 0 && variable.spec.size() == 0){
-			x3::_pass(ctx) = false;
-		}
-	};
-    
-    auto const function_declarator_def=function_declarator_type() %= *qualifiers>>-identifier>>x3::eps[check_long]>>x3::omit[*qualifiers[add_spec]]
-        >>declarator_noptr>>lit('(')>>-(parameter)>>lit(')');
-	
-    auto const variable_declaration_def = variable_declaration_type{} 
-	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>(declarator_initializer|x3::eps) % ",";
-	
-	auto const variable_declaration_single_def = variable_declaration_single_type{} 
-	%= *qualifiers>>-identifier>>x3::eps[check_long]>>x3::omit[*qualifiers[add_spec]]>>(declarator_initializer|x3::eps) % "@";
-	
-	auto const parameter_def = parameter_type() %= variable_declaration_single[check_type2] % ",";
 	
 	//auto symbol_def = x3::lexeme[!reservedWords>>&(alpha|lit('_'))>>+(alnum|char_('_'))];
     auto string_def = x3::lexeme[(lit('"')>>*(char_-'"')>>lit('"'))|(lit('\'')>>*(char_-'\'')>>lit('\''))];
@@ -196,7 +145,7 @@ namespace cpp{namespace parser{
 	
 	
 	auto const new_pointer_def = x3::omit[lit("*")];
-	auto const new_array_single = x3::rule<class new_array_single,ast::expression>() = lit('[')>expression>lit(']');
+	auto const new_array_single_def = lit('[')>expression>lit(']');
 	auto const new_array_def = +new_array_single;
 	auto const new_function_def = x3::lit('(')>>lit('*')>>-new_array>>lit(')')>>x3::lit("(")>>parameter>>lit(')');
 	auto const new_declaration_open_def = identifier>>*(new_pointer | new_array);
@@ -278,26 +227,10 @@ namespace cpp{namespace parser{
 	
 	BOOST_SPIRIT_DEFINE(number,string,template_argument,template_arguments,identifier_single,identifier,operand,argument_expr,access,primary_expr,pointToMember,unary_expr,multiplicative_expr,
 		additive_expr,expression,triExpression,dotBracket,postfix_expr,shift_expr,comp_expr,equality_expr,
-		new_expr,new_array,new_pointer,new_function,new_declaration_open,new_declaration_close,new_declaration,c_cast,
+		new_expr,new_array_single,new_array,new_pointer,new_function,new_declaration_open,new_declaration_close,new_declaration,c_cast,
 		bitwiseAnd,bitwiseXor,bitwiseOr,
 		logicalAnd,logicalOr,conditional,assignment,
-		throw_expr,comma,
-		parameter,variable_declaration_single,variable_declaration,
-        aggregate_item,
-        aggregate,
-		declarator_noptr,
-		declarator_ptr,
-		declarator_lref,
-		declarator_rref,
-		declarator_pack,
-		declarator_array,
-		declarator_function,
-		declarator_func_array,
-		declarator_comp,
-		declarator_init,
-		declarator_initializer,
-		declarator,
-        function_declarator
+		throw_expr,comma
         )
 	
 	struct operand_class : x3::annotate_on_success{};
@@ -305,9 +238,6 @@ namespace cpp{namespace parser{
 	struct newOperator_class : x3::annotate_on_success{};
 	struct primary_expr_class : x3::annotate_on_success{};
 	struct identifier_class : x3::annotate_on_success{};
-	struct declarator_initializer_class : x3::annotate_on_success{};
-	struct variable_declaration_class : x3::annotate_on_success{};
-    struct function_declaration_class : x3::annotate_on_success{};
 	struct expression_class : x3::annotate_on_success{};
 	//struct triExpression_class : annotation_base,error_handler_base{};
 }}
@@ -317,29 +247,21 @@ namespace cpp{
 		return parser::expression;
 	}
 	
-	parser::variable_declaration_type const &variable_declaration()
-	{
-		return parser::variable_declaration;
-	}
-	
 	parser::identifier_type const &identifier(){
 		return parser::identifier;
 	}
 	
-	parser::parameter_type const &parameter(){
-		return parser::parameter;
-	}
     
-    parser::function_declarator_type const &function_declarator()
+    parser::assignment_type const &assignment()
     {
-        return parser::function_declarator;
-    }
-    
-    parser::declarator_initializer_type const &declarator_initializer()
-    {
-        return parser::declarator_initializer;
+        return parser::assignment;
     }
 	
+    parser::argument_expr_type const &argument_expr()
+    {
+        return parser::argument_expr;
+    }
+    
 }
 
 #endif

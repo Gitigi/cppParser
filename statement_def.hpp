@@ -8,6 +8,7 @@
 #include "ast_adapted.hpp"
 #include "statement.hpp"
 #include "expression.hpp"
+#include "variable_declaration.hpp"
 #include "directive.hpp"
 #include "common.hpp"
 #include "error_handler.hpp"
@@ -27,13 +28,13 @@ namespace cpp { namespace parser
 	using x3::char_;
 	
 	namespace {
-        auto const &directive = cpp::directive();
+        IMPORT_PARSER(directive)
         IMPORT_PARSER(identifier);
-		auto const &variable_declaration = cpp::variable_declaration();
+		IMPORT_PARSER(variable_declaration);
         IMPORT_PARSER(expression);
-		auto const& parameter = cpp::parameter();
-        auto const& function_declarator = cpp::function_declarator();
-        auto const& declarator_initializer = cpp::declarator_initializer();
+		IMPORT_PARSER(parameter);
+        IMPORT_PARSER(function_declarator);
+        IMPORT_PARSER(declarator_initializer);
 	}
 	
 	struct if_stat_class;
