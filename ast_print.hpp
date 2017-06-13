@@ -7,6 +7,40 @@ using std::cout;
 using std::endl;
 
 namespace cpp{namespace ast{
+    
+    struct printDirective
+    {
+        void operator()(const directive &value)
+        {
+            cout<<"#";
+            boost::apply_visitor(*this,value);
+        }
+        void operator()(const define_dir &value)
+        {
+            cout<<"define "<<value.identifier;
+            if(value.params.size() > 0)
+            {
+                cout<<"(";
+                for(auto const &i : value.params)
+                {
+                    cout<<i<<",";
+                }
+                cout<<")";
+            }
+            cout<<" "<<value.defn;
+        }
+        
+        void operator()(const include_dir &value)
+        {
+            cout<<"include "<<value.file_loc;
+        }
+        
+        void operator()(const std::string &value)
+        {
+            cout<<value;
+        }
+    };
+    
 	struct printExpression
 	{
 		void operator()(const string &value){
@@ -123,15 +157,52 @@ namespace cpp{namespace ast{
 			cout<<")";
 			(*this)(value.expr);
 		}
+        
+        void operator()(const aggregate &value)
+        {
+            cout<<"{ ";
+            for(auto const &i : value.item)
+            {
+                boost::apply_visitor(*this,i);
+                cout<<",";
+            }
+            cout<<"}";
+        }
 		
 	};
 	
 	struct printStatement
 	{
+        void operator()(const Null &value)
+        {
+            cout<<"Null";
+        }
+        
+        void operator()(const directive &value)
+        {
+            printDirective()(value);
+        }
+        
 		void operator()(const expression &value)
 		{
 			printExpression()(value);
 		}
+        
+        void operator()(const std::list<expression> &value)
+        {
+            for(auto const &i : value)
+            {
+                (*this)(i);
+            }
+        }
+        
+        void operator()(const std::list<statement> &value)
+        {
+            for(auto const &i : value)
+            {
+                (*this)(i);
+            }
+        }
 		
 		void operator()(const declarator_ptr &value)
 		{
@@ -169,7 +240,7 @@ namespace cpp{namespace ast{
 		{
 			try
 			{
-				cout<<boost::get<std::string>(value);
+				printExpression()(boost::get<identifier>(value));
 			}
 			catch(std::exception &)
 			{
@@ -211,17 +282,22 @@ namespace cpp{namespace ast{
 		
 		void operator()(const declarator_init &value)
 		{
-			try{
-				auto &expr = boost::get<expression>(value);
-				cout<<" = ";
-				(*this)(expr);
-			}
-			catch(std::exception &){
-				auto &arg = boost::get<argument>(value);
-				cout<<"(";
-				printExpression()(arg);
-				cout<<")";
-			}
+            if(const expression *expr = boost::get<expression>(&value))
+            {
+                cout<<" = ";
+				(*this)(*expr);
+            }
+			else if(const argument *arg = boost::get<argument>(&value))
+            {
+                cout<<"(";
+                printExpression()(*arg);
+                cout<<")";
+            }
+            else if(const aggregate *agg = boost::get<aggregate>(&value))
+            {
+                cout<<" = ";
+                printExpression()(*agg);
+            }
 		}
 		
 		void operator()(const declarator_initializer &value)
@@ -284,7 +360,7 @@ namespace cpp{namespace ast{
 				(*this)(i);
 				cout<<endl;
 			}
-			cout<<"}"<<endl;
+			cout<<"}";
 		}
 		
 		void operator()(const if_stat &value)
@@ -333,6 +409,160 @@ namespace cpp{namespace ast{
 				(*this)(i.stat);
 			}
 		}
+        
+        void operator()(const function &value)
+        {
+            for(const auto &s : value.decl.spec)
+			{
+				cout<<s<<" ";
+			}
+			printExpression()(value.decl.type);
+            cout<<" ";
+            (*this)(value.decl.name);
+            (*this)(value.decl.params);
+            
+            if(boost::get<x3::forward_ast<statements>>(&value.defn))
+            {
+                cout<<endl<<"{"<<endl;
+                (*this)(boost::get<x3::forward_ast<statements>>(value.defn));
+                cout<<"}"<<endl;
+            }
+            else if(boost::get<try_stat>(&value.defn))
+            {
+                (*this)(boost::get<try_stat>(value.defn));
+            }
+            else if(boost::get<std::string>(&value.defn))
+            {
+                cout<<" = "<<boost::get<std::string>(value.defn)<<";"<<endl;
+            }
+            
+        }
+        
+        void operator()(const class_decl &value)
+        {
+            cout<<"class declaration";
+        }
+        
+        void operator()(const enum_defn &value)
+        {
+            cout<<"enum "<<value.nested<<" ";
+            if(!value.type.empty()){
+                cout<<": "<<value.type;
+            }
+            cout<<"{ ";
+            for(auto const &i : value.enumerators)
+            {
+                cout<<i.item<<" ";
+                if(!i.isSet.empty()){
+                    cout<<"=";
+                    printExpression()(i.value);
+                }
+                cout<<", ";
+            }
+            cout<<"}";
+        }
+        
+        void operator()(const switch_expr &value)
+        {
+            cout<<"switch(";
+            (*this)(value.test);
+            cout<<")\n{\n";
+            
+            for(auto const &i : value.cases){
+                if(const switch_case *item = boost::get<switch_case>(&i))
+                {
+                    cout<<"case ";
+                    (*this)(item->condition);
+                    cout<<":\n";
+                    (*this)(item->action);
+                    cout<<endl;
+                }
+                else
+                {
+                    cout<<"default:\n";
+                    (*this)(boost::get<statements>(i));
+                }
+            }
+            cout<<"}";
+        }
+        
+        void operator()(const for_stat &value)
+        {
+            cout<<"for(";
+            if(const for_loop *loop = boost::get<for_loop>(&value.conditioning)){
+                boost::apply_visitor(*this,loop->init);
+                cout<<";";
+                boost::apply_visitor(*this,loop->condition);
+                cout<<";";
+                (*this)(loop->iteration);
+            }
+            else
+            {
+                const for_range &range = boost::get<for_range>(value.conditioning);
+                boost::apply_visitor(*this,range.init);
+                cout<<":";
+                (*this)(range.iteration);
+            }
+            cout<<")"<<endl;
+            (*this)(value.action);
+        }
+        
+        void operator()(const while_stat &value)
+        {
+            cout<<"while(";
+            boost::apply_visitor(*this,value.condition);
+            cout<<")"<<endl;
+            (*this)(value.action);
+        }
+        
+        void operator()(const do_stat &value)
+        {
+            cout<<"do"<<endl;
+            (*this)(value.action);
+            cout<<"while(";
+            (*this)(value.condition);
+            cout<<")";
+        }
+        
+        void operator()(const namespace_stat &value)
+        {
+            cout<<"namespace ";
+            boost::apply_visitor(*this,value);
+        }
+        
+        void operator()(const namespace_decl &value)
+        {
+            printExpression()(value.name);
+            cout<<" {"<<endl;
+            (*this)(value.decl);
+            cout<<"}";
+        }
+        
+        void operator()(const namespace_alias &value)
+        {
+            cout<<value.alias<<" = ";
+            printExpression()(value.value);
+            cout<<";";
+        }
+        
+        void operator()(const using_stat &value)
+        {
+            cout<<"using ";
+            if(const using_directive *dir = boost::get<using_directive>(&value))
+            {
+                cout<<"namespace ";
+                printExpression()(dir->ns_name);
+            }
+            else if(const using_declaration *dec = boost::get<using_declaration>(&value))
+            {
+                printExpression()(dec->name);
+            }
+            else if(const using_alias *ali = boost::get<using_alias>(&value))
+            {
+                cout<<ali->alias<<" = ";
+                printExpression()(ali->value);
+            }
+        }
 		
 	};
 }}

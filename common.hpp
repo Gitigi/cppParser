@@ -2,8 +2,12 @@
 #define COMMON_HPP
 
 #include <boost/spirit/home/x3.hpp>
+#include <boost/spirit/home/x3/support/utility/annotate_on_success.hpp>
 #include <string>
 #include <iostream>
+
+#define IMPORT_PARSER(parser) \
+    auto const& parser = parser##_type(#parser) %= cpp::parser();
 
 namespace cpp{ namespace parser{
 	namespace x3 = boost::spirit::x3;
@@ -17,9 +21,9 @@ namespace cpp{ namespace parser{
 		{
 			auto &spec = variable.spec;
 			auto &decl = variable.decl[0].decl;
-			std::string name;
+			ast::identifier name;
 			try{
-				name = boost::get<std::string>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
+				name = boost::get<ast::identifier>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
 			}
 			catch(std::exception &){
 				//std::string &type = variable.type;
@@ -94,9 +98,9 @@ namespace cpp{ namespace parser{
 		{
 			auto &spec = variable.spec;
 			auto &decl = variable.decl[0].decl;
-			std::string name;
+			ast::identifier name;
 			try{
-				name = boost::get<std::string>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
+				name = boost::get<ast::identifier>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
 			}
 			catch(std::exception &){
 				//std::string &type = variable.type;
@@ -171,6 +175,8 @@ namespace cpp{ namespace parser{
 			}
 		}
 	};
+    
+    
 	
 	const struct reservedWords_ : x3::symbols<std::string>
 	{
@@ -186,16 +192,19 @@ namespace cpp{ namespace parser{
 			("else")
 			("for")
 			("namespace")
+            ("using")
 			("delete")
 			("enum")
 			("throw")
 			("new")
 			("try")
-			("catch");
+			("catch")
+            ("static")
+            ("virtual");
 		}
 	}reservedWords;
 	
-	const struct qualifiers_ : x3::symbols<std::string>
+	const struct qualifiers_ : x3::symbols<std::string>,x3::annotate_on_success
 	{
 		qualifiers_(){
 			add("const","const")
@@ -205,12 +214,14 @@ namespace cpp{ namespace parser{
 			("unsigned","unsigned")
 			("signed","signed")
 			("short","short")
-			("typedef","typedef");
+			("typedef","typedef")
+            ("static","static")
+            ("virtual","virtual");
 		
 		}
 	}qualifiers;
 
-	const auto sym = x3::rule<class sym,std::string>{} = x3::raw[x3::lexeme[!(reservedWords>>!alpha)>>(alpha|char_('_'))>>*(alnum|char_('_'))]];
+	const auto sym = x3::rule<class sym,std::string>{} = x3::raw[x3::lexeme[!(reservedWords>>!(alpha|char_('_')))>>(alpha|char_('_'))>>*(alnum|char_('_'))]];
 	x3::rule<class symbol,ast::symbol> const symbol = "symbol";
 	auto const symbol_def = sym;
 	BOOST_SPIRIT_DEFINE(symbol);

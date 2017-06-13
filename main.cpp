@@ -16,11 +16,12 @@ using std::cout;
 namespace x3 = boost::spirit::x3;
 
 int main(){
+    
 	std::string input;
 	cpp::ast::printStatement astPrinter;
 	bool success;
 	
-	std::vector<cpp::ast::statement> ast_file;
+	cpp::ast::statements ast_file;
 	boost::iostreams::mapped_file_source m_file("example.cpp");
 	using cpp::parser::iterator_file_type;
 	iterator_file_type iter_file(m_file.begin());
@@ -28,12 +29,12 @@ int main(){
 	
 	using cpp::parser::error_handler_file_type;
 	error_handler_file_type error_handler_file(iter_file,end_file,std::cerr);
-	
+    
+    struct constructor_name_ref;
+    std::string constructor_name;
 	auto const parser_file = x3::with<cpp::parser::error_handler_tag>(std::ref(error_handler_file))
-						[*cpp::statement()];
-	
-	
-	success = x3::phrase_parse(iter_file,end_file,parser_file,x3::ascii::space,ast_file);
+						[cpp::statements()];
+	success = x3::phrase_parse(iter_file,end_file,parser_file,cpp::parser::skipper,ast_file);
 	if(success && iter_file==end_file){
 		astPrinter(ast_file);
 		cout<<endl;
@@ -48,7 +49,7 @@ int main(){
 	
 	while(true)
 	{
-		cpp::ast::statement ast;
+		cpp::ast::statements ast;
 		cout<<">> ";
 		getline(cin,input);
 		
@@ -60,9 +61,9 @@ int main(){
 		error_handler_type error_handler(iter,end,std::cerr);
 		
 		auto const parser = x3::with<cpp::parser::error_handler_tag>(std::ref(error_handler))
-							[cpp::statement()];
+							[cpp::statements()];
 		
-		success = x3::phrase_parse(iter,end,parser,x3::ascii::space,ast);
+		success = x3::phrase_parse(iter,end,parser,cpp::parser::skipper,ast);
 		if(success && iter==end){
 			astPrinter(ast);
 			cout<<endl;

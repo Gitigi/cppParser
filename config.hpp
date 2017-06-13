@@ -9,8 +9,15 @@
 #include "error_handler.hpp"
 
 namespace cpp{namespace parser{
+    
+    using skipper_type = x3::rule<struct skipper_class,x3::unused_type const>;
+    skipper_type const skipper = "skipper";
+    auto const skipper_def = x3::ascii::space|x3::raw[(x3::lit("//")>>*(x3::char_-(x3::eol|x3::eoi))>>(x3::eol|x3::eoi))|
+        (x3::lit("/*") >> *((x3::char_-'*')|(x3::char_('*')>>!(x3::char_('/'))))>>x3::lit("*/"))];
+    BOOST_SPIRIT_DEFINE(skipper);
+    
 	typedef std::string::const_iterator iterator_type;
-	typedef x3::phrase_parse_context<x3::ascii::space_type>::type phrase_context_type;
+	typedef x3::phrase_parse_context<skipper_type>::type phrase_context_type;
 	typedef error_handler<iterator_type> error_handler_type;
 	
 	typedef x3::with_context<
@@ -20,7 +27,7 @@ namespace cpp{namespace parser{
     context_type;
 	
 	typedef boost::iostreams::mapped_file_source::iterator iterator_file_type;
-	typedef x3::phrase_parse_context<x3::ascii::space_type>::type phrase_context_file_type;
+	typedef x3::phrase_parse_context<skipper_type>::type phrase_context_file_type;
 	typedef error_handler<iterator_file_type> error_handler_file_type;
 	
 	typedef x3::with_context<

@@ -9,6 +9,7 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include "ast.hpp"
+#include "config.hpp"
 
 namespace cpp
 {
@@ -29,6 +30,7 @@ namespace cpp
     
     parser::statement_type const& statement();
     parser::statements_type const& statements();
+    
 }
 
 #endif

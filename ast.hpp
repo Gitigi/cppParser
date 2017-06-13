@@ -9,6 +9,29 @@
 #include <boost/optional.hpp>
 #include <string>
 #include <list>
+#include <vector>
+
+namespace cpp{namespace ast{
+    namespace x3 = boost::spirit::x3;
+    
+    struct define_dir
+    {
+        std::string identifier;
+        std::vector<std::string> params;
+        std::string defn;
+    };
+    
+    struct include_dir
+    {
+        std::string file_loc;
+    };
+    
+    struct directive : x3::variant<std::string,include_dir,define_dir>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+}}
 
 namespace cpp{namespace ast{
 	
@@ -74,6 +97,11 @@ namespace cpp{namespace ast{
 		using base_type::base_type;
 		using base_type::operator=;
 	};
+    
+    struct template_arguments : std::vector<x3::variant<x3::forward_ast<variable_declaration>,expression>>
+    {
+        
+    };
 	
 	struct identifier_single
 	{
@@ -87,8 +115,22 @@ namespace cpp{namespace ast{
 		std::vector<x3::variant<x3::forward_ast<variable_declaration>,expression>> template_params;
 	};
 	
-	struct identifier
+	struct identifier : x3::position_tagged
 	{
+        identifier(){};
+        identifier(const std::string &value){
+            names.push_back(identifier_single(value));
+        }
+        int length(){
+            if(names.size()>0)
+            {
+                return names[0].name.size();
+            }
+            else{
+                return 0;
+            }
+            
+        }
 		std::string scopeOperator;
 		//std::vector<std::string> names;
 		//std::vector<expression> template_params;
@@ -158,6 +200,18 @@ namespace cpp{namespace ast{
 		expression expr;
 	};
 	
+    struct aggregate;
+    
+    struct aggregate_item : x3::variant<expression,x3::forward_ast<aggregate>>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct aggregate
+    {
+        std::list<aggregate_item> item;
+    };
 	
 	struct declarator_ptr;
 	struct declarator_rref;
@@ -175,7 +229,7 @@ namespace cpp{namespace ast{
 		using base_type::operator=;
 	};
 	
-	struct declarator_noptr : x3::variant<std::string,declarator>
+	struct declarator_noptr : x3::variant<identifier,declarator>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -208,7 +262,7 @@ namespace cpp{namespace ast{
 		std::vector<expression> size;
 	};
 	
-	struct declarator_init : x3::variant<expression,argument>
+	struct declarator_init : x3::variant<expression,argument,aggregate>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -256,6 +310,14 @@ namespace cpp{namespace ast{
 		declarator_noptr base;
 		boost::optional<declarator_func_array> func_array;
 	};
+    
+    struct function_declarator
+    {
+        std::vector<std::string> spec;
+        identifier type;
+        declarator_noptr name;
+        parameter params;
+    };
 	
     
 }}
@@ -267,7 +329,13 @@ namespace cpp{ namespace ast{
 	
 	struct terminated_stat;
 	struct nonterminated_stat;
-	
+	struct class_decl;
+    struct enum_defn;
+    struct switch_expr;
+    struct do_stat;
+    struct namespace_stat;
+    struct using_stat;
+    
 	struct statement :
         x3::variant<x3::forward_ast<terminated_stat>,x3::forward_ast<nonterminated_stat>>
     {
@@ -275,7 +343,9 @@ namespace cpp{ namespace ast{
         using base_type::operator=;
     };
 	
-	struct terminated_stat : x3::variant<variable_declaration,expression>
+	struct terminated_stat : x3::variant<variable_declaration,expression,x3::forward_ast<class_decl>,
+        x3::forward_ast<enum_defn>,x3::forward_ast<do_stat>,
+        x3::forward_ast<using_stat>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -299,6 +369,37 @@ namespace cpp{ namespace ast{
 		std::vector<else_if_stat> else_if;
 		boost::optional<statement> else_;
 	};
+    
+    struct for_loop
+    {
+        x3::variant<Null,expression,variable_declaration> init;
+        x3::variant<Null,expression,variable_declaration> condition;
+        expression iteration;
+    };
+    
+    struct for_range
+    {
+        x3::variant<Null,expression,variable_declaration> init;
+        expression iteration;
+    };
+    
+    struct for_stat
+    {
+        x3::variant<for_loop,for_range> conditioning;
+        statement action;
+    };
+    
+    struct while_stat
+	{
+		x3::variant<expression,variable_declaration> condition;
+		statement action;
+	};
+    
+    struct do_stat
+    {
+        statement action;
+        expression condition;
+    };
 	
 	struct null_stat{};
 	
@@ -313,20 +414,146 @@ namespace cpp{ namespace ast{
 		block_stat stat;
 		std::vector<catch_stat> catch_;
 	};
+    
+    struct statements;
+    
+    struct function_body:x3::variant<x3::forward_ast<statements>,try_stat,std::string>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct function
+    {
+        function_declarator decl;
+        function_body defn;
+    };
 	
-	struct nonterminated_stat : x3::variant<block_stat,if_stat,null_stat,try_stat>
+	struct nonterminated_stat : x3::variant<block_stat,if_stat,null_stat,try_stat,function,
+        x3::forward_ast<switch_expr>,for_stat,while_stat,directive,
+        x3::forward_ast<namespace_stat>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
 	};
 	
 	
-	struct statements
+	struct statements : std::vector<statement>
 	{
-		std::vector<statement>stat;
 	};
+    
+    class class_constructor;
+    
+    struct label
+    {
+        std::string name;
+    };
+    
+    struct member_spec : x3::variant<label,function,variable_declaration,x3::forward_ast<class_constructor>,
+        x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct class_decl_defn
+    {
+        std::list<member_spec> members;
+        std::vector<declarator_initializer> variable;
+    };
+    
+    struct class_decl_variable
+    {
+        std::vector<declarator_initializer> variable;
+    };
 	
-	
+	struct class_decl
+    {
+        std::string type;
+        std::string name;
+        x3::variant<class_decl_defn,class_decl_variable> var;
+    };
+    
+    struct enumerator
+    {
+        std::string item;
+        std::string isSet;
+        expression value;
+    };
+    
+    struct enum_defn
+    {
+        std::string nested;
+        std::string name;
+        std::string type;
+        std::vector<enumerator> enumerators;
+    };
+    
+    struct class_constructor
+    {
+        std::string type;
+        std::string name;
+        parameter params;
+        boost::optional<function_body> defn;
+    };
+    
+    struct switch_case
+    {
+        std::list<expression> condition;
+        std::list<statement> action;
+    };
+    
+    struct switch_item : x3::variant<switch_case,statements>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct switch_expr
+    {
+        expression test;
+        std::list<switch_item> cases;
+    };
+    
+    struct namespace_decl
+    {
+        identifier name;
+        statements decl;
+    };
+    
+    struct namespace_alias
+    {
+        std::string alias;
+        identifier value;
+    };
+    
+    struct namespace_stat : x3::variant<namespace_decl,namespace_alias>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct using_directive
+    {
+        identifier ns_name;
+    };
+    
+    struct using_declaration
+    {
+        identifier name;
+    };
+    
+    struct using_alias
+    {
+        std::string alias;
+        identifier value;
+    };
+    
+    struct using_stat : x3::variant<using_declaration,using_directive,using_alias>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
 	
 }}
 
