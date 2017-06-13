@@ -15,6 +15,15 @@ namespace cpp{namespace ast{
 		void operator()(const symbol &value){
 			cout<<value.str;
 		}
+		
+		void operator()(const identifier &value)
+		{
+			cout<<value.scopeOperator;
+			for(const auto &i : value.names){
+				cout<<i<<"::";
+			}
+		}
+		
 		void operator()(const double value){
 			cout<<value;
 		}
@@ -33,7 +42,9 @@ namespace cpp{namespace ast{
 		void operator()(const expression &value){
 			boost::apply_visitor(*this,value.first);
 			for(const auto &i : value.rest){
+				cout<<" ";
 				cout<<i.operator_;
+				cout<<" ";
 				boost::apply_visitor(*this,i.operand_);
 				if(i.operator_ == "(")
 				{
@@ -73,20 +84,16 @@ namespace cpp{namespace ast{
 			}
 		}
 		
-		void operator()(const newOperator &value)
-		{
-			cout<<"new ";
-			(*this)(value.constructor);
-			cout<<"(";
-			(*this)(value.param);
-			cout<<")";
-		}
-		
 		void operator()(const Null &value)
 		{
 			cout<<"Null";
 		}
 		
+		void operator()(const new_expr &value)
+		{
+			cout<<"new ";
+			(*this)(value.expr);
+		}
 		
 	};
 	
@@ -158,8 +165,13 @@ namespace cpp{namespace ast{
 		}
 		void operator()(const variable_declaration &value)
 		{
-			cout<<value.type<<" ";
-			for(const auto &i : value.identifier)
+			for(const auto &s : value.spec)
+			{
+				cout<<s<<" ";
+			}
+			printExpression()(value.type);
+			cout<<" ";
+			for(const auto &i : value.decl)
 			{
 				(*this)(i);
 				cout<<" , ";

@@ -11,10 +11,10 @@ main: $(OBJS)
 main.o : main.cpp ast_print.hpp ast.hpp
 	$(CXX) $(CXXFLAGS) main.cpp -o main.o
 	
-expression.o : expression.cpp ast.hpp ast_adapted.hpp config.hpp error_handler.hpp expression.hpp expression_def.hpp
+expression.o : expression.cpp ast.hpp ast_adapted.hpp config.hpp error_handler.hpp expression.hpp expression_def.hpp common.hpp
 	$(CXX) $(CXXFLAGS) expression.cpp -o expression.o
 	
-statement.o : statement.cpp statement.hpp statement_def.hpp
+statement.o : statement.cpp statement.hpp statement_def.hpp common.hpp ast.hpp ast_adapted.hpp error_handler.hpp
 	$(CXX) $(CXXFLAGS) statement.cpp -o statement.o
 	
 clean :

@@ -19,14 +19,15 @@ namespace cpp{namespace ast{
 	struct signed_;
 	struct parameters;
 	struct triExpression;
-	struct newOperator;
+	struct identifier;
+	struct new_expr;
 	struct Null
 	{
 		
 	};
 	
-	struct operand : x3::variant<Null,double,x3::forward_ast<symbol>,x3::forward_ast<string>,
-					x3::forward_ast<signed_>,x3::forward_ast<parameters>,x3::forward_ast<newOperator>,x3::forward_ast<expression>,x3::forward_ast<triExpression>>
+	struct operand : x3::variant<Null,double,x3::forward_ast<symbol>,x3::forward_ast<identifier>,x3::forward_ast<string>,
+					x3::forward_ast<signed_>,x3::forward_ast<new_expr>,x3::forward_ast<parameters>,x3::forward_ast<expression>,x3::forward_ast<triExpression>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -35,6 +36,12 @@ namespace cpp{namespace ast{
 	struct symbol
 	{
 		std::string str;
+	};
+	
+	struct identifier
+	{
+		std::string scopeOperator;
+		std::vector<std::string> names;
 	};
 	
 	struct string
@@ -79,10 +86,9 @@ namespace cpp{namespace ast{
 		std::list<doubleOperation> rest;
 	};
 	
-	struct newOperator
+	struct new_expr
 	{
-		expression constructor;
-		parameters param;
+		expression expr;
 	};
     
 }}
@@ -153,8 +159,9 @@ namespace cpp{ namespace ast{
 	
 	struct variable_declaration
     {
-        std::string type;
-		std::list<declarator_initializer> identifier;
+		std::vector<std::string> spec;
+        identifier type;
+		std::vector<declarator_initializer> decl;
     };
 	
 	struct statement :
