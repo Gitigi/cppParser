@@ -38,7 +38,12 @@ int main(){
 		if(success && iter==end){
 			astPrinter(ast);
 			cout<<endl;
-		}else{
+		}else if(iter!=end){
+			cout<<"not fully passed"<<endl;;
+			astPrinter(ast);
+			cout<<endl;
+		}
+		else{
 			cout<<"Failed to parse"<<endl;
 		}
 	}

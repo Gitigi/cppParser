@@ -23,6 +23,7 @@ namespace cpp{namespace ast{
 	struct new_expr;
 	struct c_cast;
 	struct parameter;
+	struct variable_declaration;
 	struct Null
 	{
 		
@@ -40,11 +41,7 @@ namespace cpp{namespace ast{
 		std::string str;
 	};
 	
-	struct identifier
-	{
-		std::string scopeOperator;
-		std::vector<std::string> names;
-	};
+	
 	
 	struct string
 	{
@@ -67,6 +64,34 @@ namespace cpp{namespace ast{
 	{
 		operand first;
 		std::list<operation> rest;
+	};
+	
+	//typedef x3::variant<x3::forward_ast<variable_declaration>
+	
+	struct template_argument : x3::variant<x3::forward_ast<variable_declaration>,expression>
+	{
+		using base_type::base_type;
+		using base_type::operator=;
+	};
+	
+	struct identifier_single
+	{
+		identifier_single(std::string n){
+			name = n;
+		}
+		identifier_single(){
+			
+		}
+		std::string name;
+		std::vector<x3::variant<x3::forward_ast<variable_declaration>,expression>> template_params;
+	};
+	
+	struct identifier
+	{
+		std::string scopeOperator;
+		//std::vector<std::string> names;
+		//std::vector<expression> template_params;
+		std::vector<identifier_single> names;
 	};
 	
 	struct argument
@@ -182,11 +207,16 @@ namespace cpp{namespace ast{
 		std::vector<expression> size;
 	};
 	
+	struct declarator_init : x3::variant<expression,argument>
+	{
+		using base_type::base_type;
+		using base_type::operator=;
+	};
 	
 	struct declarator_initializer
 	{
 		declarator decl;
-		boost::optional<expression> init;
+		boost::optional<declarator_init> init;
 	};
 	
 	

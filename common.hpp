@@ -3,6 +3,7 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include <string>
+#include <iostream>
 
 namespace cpp{ namespace parser{
 	namespace x3 = boost::spirit::x3;
@@ -25,26 +26,26 @@ namespace cpp{ namespace parser{
 				ast::identifier &type = variable.type;
 				if(type.names.size() == 0)
 				{
+					auto set_type = [&](std::string type,auto it){
+						variable.type.names.push_back(ast::identifier_single(type));
+						spec.erase(it);
+					};
 					auto it = std::find(spec.begin(),spec.end(),"long");
 					if(it != spec.end())
 					{
-						variable.type.names.push_back("long");
-						spec.erase(it);
+						set_type("long",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"signed")) != spec.end())
 					{
-						variable.type.names.push_back("signed");
-						spec.erase(it);
+						set_type("signed",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"unsigned")) != spec.end())
 					{
-						variable.type.names.push_back("unsigned");
-						spec.erase(it);
+						set_type("unsigned",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"short")) != spec.end())
 					{
-						variable.type.names.push_back("short");
-						spec.erase(it);
+						set_type("short",it);
 					}
 					else
 					{
@@ -60,9 +61,9 @@ namespace cpp{ namespace parser{
 			else if(variable.spec.size() > 0 && variable.type.names.size() > 0)
 			{
 				auto set_type = [&](std::string type,auto it){
-					boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base = variable.type.names[0];
+					boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base = variable.type.names[0].name;
 					
-					variable.type.names[0]=type;
+					variable.type.names[0].name=type;
 					spec.erase(it);
 				};
 				
@@ -102,26 +103,27 @@ namespace cpp{ namespace parser{
 				ast::identifier &type = variable.type;
 				if(type.names.size() == 0)
 				{
+					auto set_type = [&](std::string type,auto it){
+						variable.type.names.push_back(ast::identifier_single(type));
+						spec.erase(it);
+					};
+					
 					auto it = std::find(spec.begin(),spec.end(),"long");
 					if(it != spec.end())
 					{
-						variable.type.names.push_back("long");
-						spec.erase(it);
+						set_type("long",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"signed")) != spec.end())
 					{
-						variable.type.names.push_back("signed");
-						spec.erase(it);
+						set_type("signed",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"unsigned")) != spec.end())
 					{
-						variable.type.names.push_back("unsigned");
-						spec.erase(it);
+						set_type("unsigned",it);
 					}
 					else if((it=std::find(spec.begin(),spec.end(),"short")) != spec.end())
 					{
-						variable.type.names.push_back("short");
-						spec.erase(it);
+						set_type("short",it);
 					}
 					else
 					{
@@ -137,9 +139,9 @@ namespace cpp{ namespace parser{
 			else if(variable.spec.size() > 0 && variable.type.names.size() > 0)
 			{
 				auto set_type = [&](std::string type,auto it){
-					boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base = variable.type.names[0];
+					boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base = variable.type.names[0].name;
 					
-					variable.type.names[0]=type;
+					variable.type.names[0].name=type;
 					spec.erase(it);
 				};
 				
@@ -208,11 +210,8 @@ namespace cpp{ namespace parser{
 
 	const auto sym = x3::rule<class sym,std::string>{} = x3::raw[x3::lexeme[!(reservedWords>>!alpha)>>(alpha|char_('_'))>>*(alnum|char_('_'))]];
 	x3::rule<class symbol,ast::symbol> const symbol = "symbol";
-	x3::rule<class identfier,ast::identifier> const identifier = "identifier";
-	
-	auto const identifier_def = -x3::string("::")>>sym % "::";
 	auto const symbol_def = sym;
-	BOOST_SPIRIT_DEFINE(symbol,identifier);
+	BOOST_SPIRIT_DEFINE(symbol);
 }}
 
 #endif

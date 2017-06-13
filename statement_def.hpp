@@ -32,8 +32,8 @@ namespace cpp { namespace parser
 	using x3::char_;
 	
 	namespace {
+		auto const &identifier = cpp::identifier();
 		auto const &variable_declaration = cpp::variable_declaration();
-		auto const &parameter = cpp::parameter();
 	}
 
     struct variable_declaration_class;

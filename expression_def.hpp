@@ -10,7 +10,7 @@
 #include "error_handler.hpp"
 
 #include <string>
-
+#include <iostream>
 
 namespace cpp{namespace parser{
 	namespace x3 = boost::spirit::x3;
@@ -44,6 +44,9 @@ namespace cpp{namespace parser{
 	namespace x3 = boost::spirit::x3;
 	x3::rule<class number,double>number = "number";
 	x3::rule<class string,ast::string>string = "string";
+	x3::rule<class template_argument,ast::template_argument>template_argument = "template_argument";
+	x3::rule<struct identifier_single,ast::identifier_single>identifier_single = "identifier_single";
+	identifier_type identifier = "identifier";
 	x3::rule<class operand,ast::operand>operand = "operand";
 	
 	expression_type expression = "expression";
@@ -81,6 +84,7 @@ namespace cpp{namespace parser{
 	
 	//variable declaration
 	const variable_declaration_type variable_declaration("variable_declaration");
+	const variable_declaration_single_type variable_declaration_single("variable_declaration_single");
 	const x3::rule<struct declarator,ast::declarator>declarator="declarator";
 	const x3::rule<struct declarator_noptr,ast::declarator_noptr>declarator_noptr = "declarator_noptr";
 	const x3::rule<struct declarator_ptr,ast::declarator_ptr>declarator_ptr = "declarator_ptr";
@@ -91,33 +95,47 @@ namespace cpp{namespace parser{
 	const x3::rule<struct declarator_function,ast::declarator_function>declarator_function = "declarator_function";
 	const x3::rule<struct declarator_func_array,ast::declarator_func_array>declarator_func_array = "declarator_func_array";
 	const x3::rule<struct declarator_comp,ast::declarator_comp>declarator_comp = "declarator_comp";
+	const x3::rule<struct declarator_init,ast::declarator_init>declarator_init = "declarator_init";
 	const x3::rule<struct declarator_initializer,ast::declarator_initializer> declarator_initializer = "declarator_initializer";
 	const parameter_type parameter("parameter");
 	
 	auto const declarator_noptr_def = sym | (lit('(') >> declarator >> lit(')'));
-	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') > declarator;
-	auto const declarator_lref_def = lit("&")>declarator;
-	auto const declarator_rref_def = lit("&&")>declarator;
-	auto const declarator_pack_def = lit("...")>declarator;
+	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') >> -declarator;
+	auto const declarator_lref_def = lit("&")>> -declarator;
+	auto const declarator_rref_def = lit("&&")>> -declarator;
+	auto const declarator_pack_def = lit("...")>> -declarator;
 	auto const declarator_array_single = x3::rule<struct declarator_array_single,ast::expression>()=lit('[')>>expression>>lit(']');
 	auto const declarator_array_def = +(declarator_array_single);
 	auto const declarator_function_def = lit('(')>>-(parameter)>>lit(')');
 	auto const declarator_func_array_def = declarator_function | declarator_array;
 	auto const declarator_comp_def = declarator_noptr>>-declarator_func_array;
 	auto const declarator_def =  declarator_ptr|declarator_comp|declarator_rref|declarator_lref|declarator_pack;
-	auto const declarator_initializer_def = declarator >> -(lit('=') > assignment);
+	auto const declarator_init_def = (lit('=')>assignment) | (lit('(')>>argument_expr>>lit(')'));
+	auto const declarator_initializer_def = declarator >> -(declarator_init);
 	
 	static auto add_spec = [](auto &ctx){
 		x3::_val(ctx).spec.push_back(x3::_attr(ctx));
 	};
+	
+	
+	
     auto const variable_declaration_def = variable_declaration_type{} 
-	%= *qualifiers>>-identifier>>x3::omit[*qualifiers[add_spec]] >>(declarator_initializer|x3::eps) % ",";
+	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>(declarator_initializer|x3::eps) % ",";
+	
+	auto const variable_declaration_single_def = variable_declaration_single_type{} 
+	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>-declarator_initializer;
+	
 	
 	auto const parameter_def = parameter_type() %= variable_declaration[check_type2] % ",";
 	
 	//auto symbol_def = x3::lexeme[!reservedWords>>&(alpha|lit('_'))>>+(alnum|char_('_'))];
     auto string_def = x3::lexeme[(lit('"')>>*(char_-'"')>>lit('"'))|(lit('\'')>>*(char_-'\'')>>lit('\''))];
 	auto number_def = x3::double_;
+	
+	auto const template_argument_def = ((variable_declaration_single[check_type2])|shift_expr);
+	auto const identifier_single_def=x3::rule<struct identifier_single,ast::identifier_single>{} %= 
+		sym>>-(lit('<')>>-(template_argument%",")>>lit('>'));
+	auto const identifier_def = -x3::string("::")>>identifier_single % "::";
 	
 	auto operand_def = number | string | identifier;
 	
@@ -180,7 +198,7 @@ namespace cpp{namespace parser{
 		x3::string("<=")
 		|x3::string("<")
 		|x3::string(">=")
-		|x3::string("<")
+		|x3::string(">")
 		)>>!lit("=");
 	auto const comp_expr_def = shift_expr >> *(compOp>shift_expr);
 	
@@ -226,13 +244,13 @@ namespace cpp{namespace parser{
 	
 	auto const triExpression_def = expression >> *(char_('?')>triExpression > char_(':')>triExpression);
 	
-	BOOST_SPIRIT_DEFINE(number,string,operand,argument_expr,access,primary_expr,pointToMember,unary_expr,multiplicative_expr,
+	BOOST_SPIRIT_DEFINE(number,string,template_argument,identifier_single,identifier,operand,argument_expr,access,primary_expr,pointToMember,unary_expr,multiplicative_expr,
 		additive_expr,expression,triExpression,dotBracket,postfix_expr,shift_expr,comp_expr,equality_expr,
 		new_expr,new_array,new_pointer,new_function,new_declaration_open,new_declaration_close,new_declaration,c_cast,
 		bitwiseAnd,bitwiseXor,bitwiseOr,
 		logicalAnd,logicalOr,conditional,assignment,
 		throw_expr,comma,
-		parameter,variable_declaration,
+		parameter,variable_declaration_single,variable_declaration,
 		declarator_noptr,
 		declarator_ptr,
 		declarator_lref,
@@ -242,6 +260,7 @@ namespace cpp{namespace parser{
 		declarator_function,
 		declarator_func_array,
 		declarator_comp,
+		declarator_init,
 		declarator_initializer,
 		declarator)
 	
@@ -262,8 +281,8 @@ namespace cpp{
 		return parser::variable_declaration;
 	}
 	
-	parser::parameter_type const &parameter(){
-		return parser::parameter;
+	parser::identifier_type const &identifier(){
+		return parser::identifier;
 	}
 }
 

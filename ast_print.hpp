@@ -20,7 +20,28 @@ namespace cpp{namespace ast{
 		{
 			cout<<value.scopeOperator;
 			for(const auto &i : value.names){
-				cout<<i<<"::";
+				cout<<i.name;
+				
+				if(i.template_params.size() > 0)
+				{
+					cout<<"<";
+					for(auto const &p : i.template_params)
+					{
+						//(*this)(p);
+						try{
+							auto expr = boost::get<expression>(p);
+							(*this)(expr);
+						}
+						catch(std::exception &){
+							
+							
+						}
+						cout<<",";
+					}
+					cout<<">";
+				}
+				
+				cout<<"::";
 			}
 		}
 		
@@ -187,12 +208,27 @@ namespace cpp{namespace ast{
 		{
 			boost::apply_visitor(*this,value);
 		}
+		
+		void operator()(const declarator_init &value)
+		{
+			try{
+				auto &expr = boost::get<expression>(value);
+				cout<<" = ";
+				(*this)(expr);
+			}
+			catch(std::exception &){
+				auto &arg = boost::get<argument>(value);
+				cout<<"(";
+				printExpression()(arg);
+				cout<<")";
+			}
+		}
+		
 		void operator()(const declarator_initializer &value)
 		{
 			(*this)(value.decl);
 			if(value.init)
 			{
-				cout<<" = ";
 				(*this)(*value.init);
 			}
 			
