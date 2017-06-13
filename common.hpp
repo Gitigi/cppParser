@@ -26,7 +26,6 @@ namespace cpp{ namespace parser{
 				name = boost::get<ast::identifier>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
 			}
 			catch(std::exception &){
-				//std::string &type = variable.type;
 				ast::identifier &type = variable.type;
 				if(type.names.size() == 0)
 				{
@@ -91,6 +90,20 @@ namespace cpp{ namespace parser{
 			}
 		}
 	};
+    
+    static auto declarator_null = [](const ast::declarator &decl)->bool {
+        try{
+            ast::identifier name = boost::get<ast::identifier>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
+            if(name.length() > 0)
+                return true;
+            else
+                return false;
+        }
+        catch(std::exception &)
+        {
+            return true;
+        }
+    };
 	
 	static auto check_type = [](auto const &ctx){
 		auto &variable = x3::_attr(ctx);
@@ -103,7 +116,31 @@ namespace cpp{ namespace parser{
 				name = boost::get<ast::identifier>(boost::get<x3::forward_ast<ast::declarator_comp>>(decl).get().base);
 			}
 			catch(std::exception &){
-				//std::string &type = variable.type;
+				//TODO : check other type of declarator (ptr,lref,rref &pack) if they are null
+                if(const auto *ptr = boost::get<x3::forward_ast<ast::declarator_ptr>>(&decl))
+                {
+                    x3::_pass(ctx) = declarator_null(ptr->get().decl);
+                    return;
+                }
+                
+                else if(const auto *lref = boost::get<x3::forward_ast<ast::declarator_lref>>(&decl))
+                {
+                    x3::_pass(ctx) = declarator_null(lref->get().decl);
+                    return;
+                }
+                
+                else if(const auto *rref = boost::get<x3::forward_ast<ast::declarator_rref>>(&decl))
+                {
+                    x3::_pass(ctx) = declarator_null(rref->get().decl);
+                    return;
+                }
+                
+                else if(const auto *pack = boost::get<x3::forward_ast<ast::declarator_pack>>(&decl))
+                {
+                    x3::_pass(ctx) = declarator_null(pack->get().decl);
+                    return;
+                }
+                
 				ast::identifier &type = variable.type;
 				if(type.names.size() == 0)
 				{

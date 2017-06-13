@@ -124,7 +124,7 @@ namespace cpp{namespace ast{
         int length(){
             if(names.size()>0)
             {
-                return names[0].name.size();
+                return names[0].name.length();
             }
             else{
                 return 0;
@@ -284,7 +284,7 @@ namespace cpp{namespace ast{
 	
 	struct parameter
 	{
-		std::vector<variable_declaration> param;
+		std::vector<x3::variant<variable_declaration,std::string>> param;
 	};
 	
 	struct new_function

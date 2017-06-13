@@ -88,6 +88,11 @@ namespace cpp{namespace ast{
 				boost::apply_visitor(*this,value.operand_);
 				cout<<value.sign.substr(0,2);
 			}
+            else if(value.sign == "...")
+            {
+                boost::apply_visitor(*this,value.operand_);
+				cout<<value.sign;
+            }
 			else
 			{
 				cout<<value.sign;

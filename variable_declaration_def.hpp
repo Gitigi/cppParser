@@ -50,7 +50,7 @@ namespace cpp{namespace parser{
 	
     auto const aggregate_item_def = assignment | aggregate;
     auto const aggregate_def = lit("{")>>-(aggregate_item % ",")>>lit("}");
-	auto const declarator_noptr_def = identifier | (lit('(') >> declarator >> lit(')'));
+	auto const declarator_noptr_def = identifier | (lit('(') >> declarator >> lit(')')>>!lit("..."));
 	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') >> -declarator;
 	auto const declarator_lref_def = lit("&")>> -declarator;
 	auto const declarator_rref_def = lit("&&")>> -declarator;
@@ -85,7 +85,7 @@ namespace cpp{namespace parser{
 	auto const variable_declaration_single_def = variable_declaration_single_type{} 
 	%= *qualifiers>>-identifier>>x3::eps[check_long]>>x3::omit[*qualifiers[add_spec]]>>(declarator_initializer|x3::eps) % "@";
 	
-	auto const parameter_def = parameter_type() %= variable_declaration_single[check_type2] % ",";
+	auto const parameter_def = parameter_type() %= (x3::string("...")|variable_declaration_single[check_type2]) % ",";
 	
 	
 	BOOST_SPIRIT_DEFINE(

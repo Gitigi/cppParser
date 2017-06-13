@@ -129,7 +129,10 @@ namespace cpp{namespace parser{
 			| (x3::string("(")>argument_expr>lit(')'))
 			| (x3::string("{")>argument_expr>lit('}')))>>x3::eps[checkNotNumberString];
 	
-	auto const postfix_expr_def = x3::attr(std::string("+++")) >> primary_expr >> lit("++") | x3::attr(std::string("---")) >> primary_expr >> lit("--");
+auto const postfix_expr_def = (x3::attr(std::string("+++")) >> primary_expr >> lit("++"))
+        | (x3::attr(std::string("---")) >> primary_expr >> lit("--"))
+        | (x3::attr(std::string("...")) >> dotBracket >> lit("..."));
+        
 	auto const access_def = postfix_expr | dotBracket;
 	auto const unary_expr_def = access
 		| x3::string("!") > access
