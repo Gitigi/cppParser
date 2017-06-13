@@ -98,7 +98,6 @@ namespace cpp{namespace parser{
 	const x3::rule<struct declarator_init,ast::declarator_init>declarator_init = "declarator_init";
 	const x3::rule<struct declarator_initializer,ast::declarator_initializer> declarator_initializer = "declarator_initializer";
 	const parameter_type parameter("parameter");
-	const x3::rule<struct parameter_single,ast::parameter> parameter_single = "parameter_single";
 	
 	auto const declarator_noptr_def = sym | (lit('(') >> declarator >> lit(')'));
 	auto const declarator_ptr_def = -(identifier>>lit("::"))>>+x3::char_('*') >> -declarator;
@@ -111,30 +110,33 @@ namespace cpp{namespace parser{
 	auto const declarator_func_array_def = declarator_function | declarator_array;
 	auto const declarator_comp_def = declarator_noptr>>-declarator_func_array;
 	auto const declarator_def =  declarator_ptr|declarator_comp|declarator_rref|declarator_lref|declarator_pack;
-	auto const declarator_init_def = (lit('=')>assignment) | (lit('(')>>argument_expr>>lit(')'));
-	auto const declarator_initializer_def = declarator >> -(declarator_init);
+	auto const declarator_init_def = (lit('=')>assignment) | (lit('(')>>argument_expr>>lit(')'))| (lit('{')>>argument_expr>>lit('}'));
+	auto const declarator_initializer_def = -declarator >> -(declarator_init);
 	
 	static auto add_spec = [](auto &ctx){
 		x3::_val(ctx).spec.push_back(x3::_attr(ctx));
 	};
 	
-	
+	static auto check_long = [](auto &ctx){
+		auto &variable = x3::_val(ctx);
+		if(variable.type.names.size() == 0 && variable.spec.size() == 0){
+			x3::_pass(ctx) = false;
+		}
+	};
 	
     auto const variable_declaration_def = variable_declaration_type{} 
 	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>(declarator_initializer|x3::eps) % ",";
 	
 	auto const variable_declaration_single_def = variable_declaration_single_type{} 
-	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>-declarator_initializer;
+	%= *qualifiers>>-identifier>>x3::eps[check_long]>>x3::omit[*qualifiers[add_spec]]>>(declarator_initializer|x3::eps) % "@";
 	
-	
-	auto const parameter_def = parameter_type() %= variable_declaration[check_type2] % ",";
-	auto const parameter_single_def = x3::rule<struct parameter_single,ast::parameter>() %= variable_declaration[check_type2] % ",";
+	auto const parameter_def = parameter_type() %= variable_declaration_single[check_type2] % ",";
 	
 	//auto symbol_def = x3::lexeme[!reservedWords>>&(alpha|lit('_'))>>+(alnum|char_('_'))];
     auto string_def = x3::lexeme[(lit('"')>>*(char_-'"')>>lit('"'))|(lit('\'')>>*(char_-'\'')>>lit('\''))];
 	auto number_def = x3::double_;
 	
-	auto const template_argument_def = ((variable_declaration_single[check_type2])|shift_expr);
+	auto const template_argument_def =x3::rule<class template_argument,ast::template_argument>() %= variable_declaration_single[check_type2]|shift_expr;
 	auto const identifier_single_def=x3::rule<struct identifier_single,ast::identifier_single>{} %= 
 		sym>>-(lit('<')>>-(template_argument%",")>>lit('>'));
 	auto const identifier_def = -x3::string("::")>>identifier_single % "::";
@@ -252,7 +254,7 @@ namespace cpp{namespace parser{
 		bitwiseAnd,bitwiseXor,bitwiseOr,
 		logicalAnd,logicalOr,conditional,assignment,
 		throw_expr,comma,
-		parameter,parameter_single,variable_declaration_single,variable_declaration,
+		parameter,variable_declaration_single,variable_declaration,
 		declarator_noptr,
 		declarator_ptr,
 		declarator_lref,
@@ -269,6 +271,8 @@ namespace cpp{namespace parser{
 	struct unary_expr_class : x3::annotate_on_success{};
 	struct newOperator_class : x3::annotate_on_success{};
 	struct primary_expr_class : x3::annotate_on_success{};
+	struct identifier_class : x3::annotate_on_success{};
+	struct variable_declaration_class : x3::annotate_on_success{};
 	struct expression_class : x3::annotate_on_success,error_handler_base{};
 	//struct triExpression_class : annotation_base,error_handler_base{};
 }}
@@ -286,6 +290,11 @@ namespace cpp{
 	parser::identifier_type const &identifier(){
 		return parser::identifier;
 	}
+	
+	parser::parameter_type const &parameter(){
+		return parser::parameter;
+	}
+	
 }
 
 #endif

@@ -189,7 +189,9 @@ namespace cpp{ namespace parser{
 			("delete")
 			("enum")
 			("throw")
-			("new");
+			("new")
+			("try")
+			("catch");
 		}
 	}reservedWords;
 	

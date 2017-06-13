@@ -20,13 +20,15 @@ namespace cpp
         typedef statement_type::id statement_id;
         BOOST_SPIRIT_DECLARE(statement_type);
 		
-		struct parameter_class;
-		typedef x3::rule<parameter_class,ast::parameter> parameter_type;
-		typedef parameter_type::id parameter_id;
-		BOOST_SPIRIT_DECLARE(parameter_type);
+		struct statements_class;
+        typedef x3::rule<statements_class, ast::statements> statements_type;
+        typedef statements_type::id statements_id;
+        BOOST_SPIRIT_DECLARE(statements_type);
+		
     }
     
     parser::statement_type const& statement();
+    parser::statements_type const& statements();
 }
 
 #endif

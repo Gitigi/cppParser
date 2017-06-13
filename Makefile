@@ -1,7 +1,7 @@
 CXX = g++
 CXXFLAGS = -c -std=c++14
 OBJS = main.o  statement.o expression.o
-LIBS = -l boost_system
+LIBS = -l boost_system -lboost_iostreams
 
 all : main
 

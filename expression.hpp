@@ -41,9 +41,9 @@ namespace cpp
 	
 	parser::variable_declaration_type const &variable_declaration();
 	
-	parser::parameter_type const &parameter();
-	
 	parser::identifier_type const &identifier();
+	
+	parser::parameter_type const &parameter();
 }
 
 #endif

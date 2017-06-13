@@ -248,9 +248,91 @@ namespace cpp{namespace ast{
 			}
 		}
 		
+		void operator()(const parameter &value)
+		{
+			cout<<"parameter";
+		}
+		
 		void operator()(const statement &value)
 		{
 			boost::apply_visitor(*this,value);
 		}
+		
+		void operator()(const std::vector<statement> &value)
+		{
+			for(auto const &i : value){
+				(*this)(i);
+				cout<<endl;
+			}
+		}
+		
+		void operator()(const terminated_stat &value)
+		{
+			boost::apply_visitor(*this,value);
+			cout<<";";
+		}
+		
+		void operator()(const nonterminated_stat &value)
+		{
+			boost::apply_visitor(*this,value);
+		}
+		
+		void operator()(const block_stat &value)
+		{
+			cout<<"{"<<endl;
+			for(auto const &i : value.stat){
+				(*this)(i);
+				cout<<endl;
+			}
+			cout<<"}"<<endl;
+		}
+		
+		void operator()(const if_stat &value)
+		{
+			cout<<"if (";
+			boost::apply_visitor(*this,value.condition);
+			cout<<")"<<endl;
+			(*this)(value.stat);
+			cout<<endl;
+			for(const auto &i : value.else_if){
+				cout<<"else if (";
+				boost::apply_visitor(*this,value.condition);
+				cout<<")"<<endl;
+				(*this)(value.stat);
+			}
+			cout<<endl;
+			if(value.else_)
+			{
+				cout<<"else"<<endl;
+				(*this)(*value.else_);
+			}
+		}
+		
+		void operator()(const null_stat &value)
+		{
+			cout<<";";
+		}
+		
+		void operator()(const try_stat &value)
+		{
+			cout<<"try"<<endl;
+			(*this)(value.stat);
+			
+			for(const auto &i : value.catch_)
+			{
+				cout<<"catch(";
+				try{
+					auto &var = boost::get<parameter>(i.exception_);
+					(*this)(var);
+				}
+				catch(std::exception &)
+				{
+					cout<<"...";
+				}
+				cout<<")";
+				(*this)(i.stat);
+			}
+		}
+		
 	};
 }}

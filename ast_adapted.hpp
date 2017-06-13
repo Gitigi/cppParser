@@ -29,5 +29,11 @@ BOOST_FUSION_ADAPT_STRUCT(cpp::ast::declarator_lref,decl)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::declarator_rref,decl)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::declarator_pack,decl)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::declarator_initializer,decl,init)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::statements,stat)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::block_stat,stat)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::if_stat,condition,stat,else_if,else_)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::else_if_stat,condition,stat)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::try_stat,stat,catch_)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::catch_stat,exception_,stat)
 
 #endif

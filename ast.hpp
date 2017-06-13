@@ -3,6 +3,7 @@
 
 #include <boost/spirit/home/x3.hpp>
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
+#include <boost/spirit/home/x3/support/ast/position_tagged.hpp>
 #include <boost/fusion/view/iterator_range.hpp>
 #include <boost/fusion/include/iterator_range.hpp>
 #include <boost/optional.hpp>
@@ -60,7 +61,7 @@ namespace cpp{namespace ast{
 		operand operand_;
 	};
 	
-	struct expression
+	struct expression : x3::position_tagged
 	{
 		operand first;
 		std::list<operation> rest;
@@ -220,7 +221,7 @@ namespace cpp{namespace ast{
 	};
 	
 	
-	struct variable_declaration
+	struct variable_declaration : x3::position_tagged
     {
 		std::vector<std::string> spec;
         identifier type;
@@ -264,12 +265,67 @@ namespace cpp{ namespace ast{
 	namespace x3 = boost::spirit::x3;
 	
 	
+	struct terminated_stat;
+	struct nonterminated_stat;
+	
 	struct statement :
-        x3::variant<variable_declaration,expression>
+        x3::variant<x3::forward_ast<terminated_stat>,x3::forward_ast<nonterminated_stat>>
     {
         using base_type::base_type;
         using base_type::operator=;
     };
+	
+	struct terminated_stat : x3::variant<variable_declaration,expression>
+	{
+		using base_type::base_type;
+		using base_type::operator=;
+	};
+	
+	struct block_stat
+	{
+		std::vector<statement> stat;
+	};
+	
+	struct else_if_stat
+	{
+		x3::variant<expression,variable_declaration> condition;
+		statement stat;
+	};
+	
+	struct if_stat
+	{
+		x3::variant<expression,variable_declaration> condition;
+		statement stat;
+		std::vector<else_if_stat> else_if;
+		boost::optional<statement> else_;
+	};
+	
+	struct null_stat{};
+	
+	struct catch_stat
+	{
+		x3::variant<std::string,parameter> exception_;
+		block_stat stat;
+	};
+	
+	struct try_stat
+	{
+		block_stat stat;
+		std::vector<catch_stat> catch_;
+	};
+	
+	struct nonterminated_stat : x3::variant<block_stat,if_stat,null_stat,try_stat>
+	{
+		using base_type::base_type;
+		using base_type::operator=;
+	};
+	
+	
+	struct statements
+	{
+		std::vector<statement>stat;
+	};
+	
 	
 	
 }}
