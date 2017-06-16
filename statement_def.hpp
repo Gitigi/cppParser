@@ -141,7 +141,8 @@ namespace cpp { namespace parser
     auto const class_decl_def = (x3::string("class")|x3::string("struct"))>>identifier>>
         (class_decl_defn|class_decl_variable);
     
-    auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |label|class_constructor| function;
+    auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |
+        label|class_constructor| function | template_decl;
     
     auto const class_constructor_def = -sym >> -sym>>lit('(')>>parameter>>lit(')')>>(function_body|lit(";"));
     
@@ -166,15 +167,21 @@ namespace cpp { namespace parser
     auto const using_declaration_def = identifier;
     auto const using_alias_def = sym >> lit("=")>> identifier;
     
-    auto const template_type_parameter_def = (x3::string("typename")|x3::string("class"))
+    auto const template_type_parameter_def= 
+        x3::rule<struct template_type_parameter,ast::template_type_parameter>() %= 
+        (x3::string("typename")|x3::string("class"))
         >>-x3::string("...")>>-sym>>-(lit('=')>>variable_declaration[check_type2]);
     
     auto const template_template_parameter_def = lit("template")>>lit("<")>>
         -(template_parameter % ",")>>lit(">")>>template_type_parameter;
     
-    auto const template_parameter_def = template_type_parameter |template_template_parameter| variable_declaration[check_type2];
+    auto const template_parameter_def=
+        x3::rule<struct template_parameter,ast::template_parameter>() %= 
+        template_type_parameter |template_template_parameter| variable_declaration[check_type2];
     
-    auto const template_body_def = (class_decl>lit(";"))|(function)|(enum_defn>lit(";"));
+    auto const template_body_def =
+        x3::rule<struct template_body,ast::template_body>() %=
+        (class_decl>lit(";"))|(function)|(enum_defn>lit(";"))|(variable_declaration[check_type2]>>lit(";"));
     
     auto const template_decl_def = lit("template")>>lit("<")>>-(template_parameter%",")>>lit(">")>>template_body;
 		

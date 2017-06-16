@@ -486,7 +486,7 @@ namespace cpp{ namespace ast{
     };
     
     struct member_spec : x3::variant<label,function,variable_declaration,x3::forward_ast<class_constructor>,
-        x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>>
+        x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>,template_decl>
     {
         using base_type::base_type;
         using base_type::operator=;
