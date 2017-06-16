@@ -258,8 +258,24 @@ namespace cpp{ namespace parser{
 		
 		}
 	}qualifiers;
+    
+    const struct operators_ : x3::symbols<std::string>
+    {
+        operators_(){
+            add("operator()","operator()")
+                ("operator[]","operator[]")
+                ("operator+","operator+")
+                ("operator-","operator-")
+                ("operator*","operator*")
+                ("operator/","operator/")
+                ("operator%","operator%")
+                ("operator=","operator=")
+                ("operator>>","operator>>")
+                ("operator<<","operator<<");
+        }
+    }operators;
 
-	const auto sym = x3::rule<class sym,std::string>{} = x3::raw[x3::lexeme[!(reservedWords>>!(alpha|char_('_')))>>(alpha|char_('_'))>>*(alnum|char_('_'))]];
+	const auto sym = x3::rule<class sym,std::string>{} = x3::raw[operators|x3::lexeme[!(reservedWords>>!(alpha|char_('_')))>>(alpha|char_('_'))>>*(alnum|char_('_'))]];
 	x3::rule<class symbol,ast::symbol> const symbol = "symbol";
 	auto const symbol_def = sym;
 	BOOST_SPIRIT_DEFINE(symbol);

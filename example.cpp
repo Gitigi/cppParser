@@ -48,6 +48,10 @@ class Person
     }
     int Person(int fd);
     static const int d=d;
+    
+    Person operator+ (Person anotherPerson){
+        
+    }
 };
 
 
