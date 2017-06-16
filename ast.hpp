@@ -470,7 +470,7 @@ namespace cpp{ namespace ast{
 	struct class_decl
     {
         std::string type;
-        std::string name;
+        identifier name;
         x3::variant<class_decl_defn,class_decl_variable> var;
     };
     

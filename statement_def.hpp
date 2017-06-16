@@ -133,7 +133,7 @@ namespace cpp { namespace parser
     
     auto const class_decl_variable_def = (declarator_initializer % ",");
     
-    auto const class_decl_def = (x3::string("class")|x3::string("struct"))>>sym>>
+    auto const class_decl_def = (x3::string("class")|x3::string("struct"))>>identifier>>
         (class_decl_defn|class_decl_variable);
     
     auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |label|class_constructor| function;
