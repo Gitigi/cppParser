@@ -237,7 +237,8 @@ namespace cpp{ namespace parser{
 			("try")
 			("catch")
             ("static")
-            ("virtual");
+            ("virtual")
+            ("template");
 		}
 	}reservedWords;
 	

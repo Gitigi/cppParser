@@ -568,6 +568,11 @@ namespace cpp{namespace ast{
                 printExpression()(ali->value);
             }
         }
+        
+        void operator()(const template_decl &value)
+        {
+            cout<<"template";
+        }
 		
 	};
 }}

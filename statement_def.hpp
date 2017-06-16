@@ -88,12 +88,17 @@ namespace cpp { namespace parser
     x3::rule<struct using_directive,ast::using_directive>using_directive = "using_directive";
     x3::rule<struct using_declaration,ast::using_declaration>using_declaration = "using_declaration";
     x3::rule<struct using_alias,ast::using_alias>using_alias = "using_alias";
+    x3::rule<struct template_type_parameter,ast::template_type_parameter>template_type_parameter = "template_type_parameter";
+    x3::rule<struct template_template_parameter,ast::template_template_parameter>template_template_parameter = "template_template_parameter";
+    x3::rule<struct template_parameter,ast::template_parameter> template_parameter = "template_parameter";
+    x3::rule<struct template_body,ast::template_body> template_body = "template_body";
+    x3::rule<struct template_dec,ast::template_decl> template_decl = "template_decl";
 	
 	auto const terminated_stat_def = x3::rule<struct terminated_stat,ast::terminated_stat>() %=
 	(using_stat|do_stat|enum_defn|class_decl | variable_declaration[check_type] | expression)>lit(';');
 	
 	auto const nonterminated_stat_def = directive|while_stat|for_stat|switch_expr|function|
-        if_stat|block_stat|null_stat|try_stat|namespace_stat;
+        if_stat|block_stat|null_stat|try_stat|namespace_stat|template_decl;
 	
 	auto const block_stat_def = lit('{')>>*statement>>lit('}');
 	
@@ -160,6 +165,18 @@ namespace cpp { namespace parser
     auto const using_directive_def = lit("namespace")>>identifier;
     auto const using_declaration_def = identifier;
     auto const using_alias_def = sym >> lit("=")>> identifier;
+    
+    auto const template_type_parameter_def = (x3::string("typename")|x3::string("class"))
+        >>-x3::string("...")>>-sym>>-(lit('=')>>variable_declaration[check_type2]);
+    
+    auto const template_template_parameter_def = lit("template")>>lit("<")>>
+        -(template_parameter % ",")>>lit(">")>>template_type_parameter;
+    
+    auto const template_parameter_def = template_type_parameter |template_template_parameter| variable_declaration[check_type2];
+    
+    auto const template_body_def = (class_decl>lit(";"))|(function)|(enum_defn>lit(";"));
+    
+    auto const template_decl_def = lit("template")>>lit("<")>>-(template_parameter%",")>>lit(">")>>template_body;
 		
 	auto const statement_def = nonterminated_stat | terminated_stat;
 	auto const statements_def = *statement;
@@ -192,7 +209,12 @@ namespace cpp { namespace parser
         using_stat,
         using_directive,
         using_declaration,
-        using_alias
+        using_alias,
+        template_type_parameter,
+        template_template_parameter,
+        template_parameter,
+        template_body,
+        template_decl
 		);
 
     struct statement_class : x3::annotate_on_success {};

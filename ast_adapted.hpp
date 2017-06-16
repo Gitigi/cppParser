@@ -60,5 +60,8 @@ BOOST_FUSION_ADAPT_STRUCT(cpp::ast::namespace_alias,alias,value)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::using_directive,ns_name)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::using_declaration,name)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::using_alias,alias,value)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::template_type_parameter,typen,parameter_pack,name,default_value)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::template_template_parameter,params,type)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::template_decl,params,body)
 
 #endif

@@ -330,11 +330,47 @@ namespace cpp{ namespace ast{
 	struct terminated_stat;
 	struct nonterminated_stat;
 	struct class_decl;
+    struct function;
     struct enum_defn;
     struct switch_expr;
     struct do_stat;
     struct namespace_stat;
     struct using_stat;
+    struct template_template_parameter;
+    
+    struct template_type_parameter
+    {
+        std::string typen;
+        std::string parameter_pack;
+        std::string name;
+        variable_declaration default_value;
+    };
+    
+    struct template_parameter : 
+        x3::variant<template_type_parameter,x3::forward_ast<template_template_parameter>,variable_declaration>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct template_template_parameter
+    {
+        std::list<template_parameter> params;
+        template_type_parameter type;
+    };
+    
+    struct template_body : x3::variant<x3::forward_ast<class_decl>,
+        x3::forward_ast<function>,x3::forward_ast<enum_defn>,variable_declaration>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct template_decl
+    {
+        std::list<template_parameter> params;
+        template_body body;
+    };
     
 	struct statement :
         x3::variant<x3::forward_ast<terminated_stat>,x3::forward_ast<nonterminated_stat>>
@@ -431,7 +467,7 @@ namespace cpp{ namespace ast{
 	
 	struct nonterminated_stat : x3::variant<block_stat,if_stat,null_stat,try_stat,function,
         x3::forward_ast<switch_expr>,for_stat,while_stat,directive,
-        x3::forward_ast<namespace_stat>>
+        x3::forward_ast<namespace_stat>,template_decl>
 	{
 		using base_type::base_type;
 		using base_type::operator=;

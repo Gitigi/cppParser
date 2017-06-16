@@ -20,7 +20,7 @@ statement.o : statement.cpp statement.hpp statement_def.hpp common.hpp ast.hpp a
 directive.o : directive.cpp directive.hpp directive_def.hpp common.hpp ast.hpp ast_adapted.hpp
 	$(CXX) $(CXXFLAGS) directive.cpp -o directive.o
     
-variable_declaration.o : variable_declaration.cpp variable_declaration.hpp variable_declaration_def.hpp common.hpp
+variable_declaration.o : variable_declaration.cpp variable_declaration.hpp variable_declaration_def.hpp common.hpp ast.hpp
 	$(CXX) $(CXXFLAGS) variable_declaration.cpp -o variable_declaration.o
 	
 clean :
