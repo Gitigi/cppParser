@@ -213,7 +213,11 @@ namespace cpp{ namespace parser{
 		}
 	};
     
-    
+    static auto is_initialized = [](const auto &ctx)
+    {
+        auto &variable = x3::_attr(ctx);
+        x3::_pass(ctx) = (bool)(variable.decl[0].init);
+    };
 	
 	const struct reservedWords_ : x3::symbols<std::string>
 	{

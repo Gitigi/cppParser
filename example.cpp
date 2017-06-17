@@ -165,3 +165,11 @@ void (*fp03())(const std::string&)
 }
 
 wxString filename((char *)data);
+
+if(dialog)
+{
+}else if(dialog && dialog->IsModal())
+{
+    
+}
+            

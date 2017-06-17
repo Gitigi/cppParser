@@ -107,10 +107,10 @@ namespace cpp { namespace parser
 	
 	auto const block_stat_def = lit('{')>>*statement>>lit('}');
 	
-	auto const if_stat_def= if_stat_type() %= lit("if")>>lit("(")>>(variable_declaration[check_type]|expression)>>lit(')') >>
-	statement  >>*else_if_stat>> -(lit("else")>>statement);
+	auto const if_stat_def= if_stat_type() %= lit("if")>>lit("(")>>(variable_declaration[check_type][is_initialized]|expression)>>lit(')') >
+	statement  >>*else_if_stat>> -(lit("else")>statement);
 	
-	auto const else_if_stat_def = else_if_stat_type() %= lit("else")>>lit("if")>>lit("(")>>(variable_declaration[check_type]|expression)>>lit(')') >> statement;
+	auto const else_if_stat_def = else_if_stat_type() %= lit("else")>>lit("if")>>lit("(")>>(variable_declaration[check_type][is_initialized]|expression)>>lit(')') > statement;
 	
 	auto const for_loop_def = for_loop_type() %= (variable_declaration[check_type]|expression|x3::eps)>>
         lit(';')>>(variable_declaration[check_type]|expression|x3::eps)>>lit(';')>>(expression|x3::eps);
@@ -121,7 +121,7 @@ namespace cpp { namespace parser
     auto const for_stat_def = lit("for")>>lit("(")>>(for_range|for_loop)>>lit(')')>>statement;
     
     auto const while_stat_def = while_stat_type() %= 
-        lit("while")>>lit("(")>>(variable_declaration[check_type]|expression)>>lit(')') >>statement;
+        lit("while")>>lit("(")>>(variable_declaration[check_type][is_initialized]|expression)>>lit(')') >>statement;
     
     auto const do_stat_def = lit("do")>>statement>>lit("while")>>lit('(')>>expression>>lit(')');
     
