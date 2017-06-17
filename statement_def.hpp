@@ -70,6 +70,7 @@ namespace cpp { namespace parser
     x3::rule<struct function,ast::function>function = "function";
     x3::rule<struct function_body,ast::function_body>function_body = "function_body";
     
+    x3::rule<struct derived_class,ast::derived_class>derived_class = "derived_class";
     x3::rule<struct class_decl_defn,ast::class_decl_defn>class_decl_defn="class_defn_decl";
     x3::rule<struct class_decl_variable,ast::class_decl_variable>class_decl_variable="class_defn_variable";
     x3::rule<struct class_decl,ast::class_decl>class_decl = "class_decl";
@@ -139,11 +140,15 @@ namespace cpp { namespace parser
     
     auto const function_def =function_declarator>>function_body;
     
+    auto const derived_class_def = *(x3::string("public")|x3::string("private")|
+        x3::string("protected")|x3::string("virtual"))>>identifier;
+    
     auto const class_decl_defn_def = lit("{")>>*member_spec>>lit("}")>>(declarator_initializer % ",");
     
     auto const class_decl_variable_def = (declarator_initializer % ",");
     
     auto const class_decl_def = (x3::string("class")|x3::string("struct"))>>-identifier>>
+        -(lit(':')>>(derived_class % ","))>>
         (class_decl_defn|class_decl_variable);
     
     auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |
@@ -206,6 +211,7 @@ namespace cpp { namespace parser
 		try_stat,catch_stat,
         function_body,
         function,
+        derived_class,
         class_decl_defn,
         class_decl_variable,
         class_decl,

@@ -538,6 +538,12 @@ namespace cpp{ namespace ast{
         std::string name;
     };
     
+    struct derived_class
+    {
+        std::list<std::string> specifier;
+        identifier classname;
+    };
+    
     struct member_spec : x3::variant<label,function,variable_declaration,x3::forward_ast<class_constructor>,
         x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>,template_decl,null_stat>
     {
@@ -560,6 +566,7 @@ namespace cpp{ namespace ast{
     {
         std::string type;
         identifier name;
+        std::list<derived_class> bases;
         x3::variant<class_decl_defn,class_decl_variable> var;
     };
     

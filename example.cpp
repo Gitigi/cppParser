@@ -172,4 +172,10 @@ if(dialog)
 {
     
 }
-            
+
+class stClient : public wxClient,wxObject
+{
+public:
+	stClient(){};
+	wxConnectionBase *OnMakeConnection();
+};
