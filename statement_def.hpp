@@ -181,7 +181,7 @@ namespace cpp { namespace parser
     
     auto const template_body_def =
         x3::rule<struct template_body,ast::template_body>() %=
-        (class_decl>lit(";"))|(function)|(enum_defn>lit(";"))|(variable_declaration[check_type2]>>lit(";"));
+        (class_decl>lit(";"))|(function)|(enum_defn>lit(";"))|(using_stat>>lit(';'))|(variable_declaration[check_type2]>>lit(";"));
     
     auto const template_decl_def = lit("template")>>lit("<")>>-(template_parameter%",")>>lit(">")>>template_body;
 		

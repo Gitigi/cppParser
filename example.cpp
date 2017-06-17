@@ -129,3 +129,6 @@ namespace R { // not a enclosing namespace for Q
    void Q::V::g() {} // Error: cannot define Q::V::g inside R
 }
 void Q::V::g() {} // OK: global namespace encloses Q
+
+template <typename Iterator>
+using error_handler = x3::error_handler<Iterator>;

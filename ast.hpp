@@ -360,7 +360,8 @@ namespace cpp{ namespace ast{
     };
     
     struct template_body : x3::variant<x3::forward_ast<class_decl>,
-        x3::forward_ast<function>,x3::forward_ast<enum_defn>,variable_declaration>
+        x3::forward_ast<function>,x3::forward_ast<enum_defn>,variable_declaration,
+        x3::forward_ast<using_stat>>
     {
         using base_type::base_type;
         using base_type::operator=;
