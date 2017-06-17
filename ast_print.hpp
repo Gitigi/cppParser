@@ -158,7 +158,8 @@ namespace cpp{namespace ast{
 		void operator()(const c_cast &value)
 		{
 			cout<<"(";
-			(*this)(value.type);
+//			(*this)(value.type);
+            cout<<"type";
 			cout<<")";
 			(*this)(value.expr);
 		}

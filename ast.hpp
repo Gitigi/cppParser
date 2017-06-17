@@ -196,7 +196,7 @@ namespace cpp{namespace ast{
 	
 	struct c_cast
 	{
-		identifier type;
+		new_declaration type;
 		expression expr;
 	};
 	

@@ -157,7 +157,7 @@ auto const postfix_expr_def = (x3::attr(std::string("+++")) >> primary_expr >> l
 	auto const new_declaration_def = (lit('(')>>new_declaration_close>>lit(')'))|(new_declaration_open);
 	auto const new_expr_def = lit("new") > new_declaration >>-(lit('(')>argument_expr>lit(')'));
 	
-	auto const c_cast_def = lit('(')>>identifier>>lit(')')>>expression;
+	auto const c_cast_def = lit('(')>>new_declaration>>lit(')')>>expression;
 	
 	auto const pointToMember_def = (c_cast|unary_expr|new_expr) >> *((x3::string(".*")>symbol) | (x3::string("->*")>symbol));
 	
