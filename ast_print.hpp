@@ -443,6 +443,11 @@ namespace cpp{namespace ast{
             
         }
         
+        void operator()(const class_constructor &value)
+        {
+            cout<<"class constructor";
+        }
+        
         void operator()(const class_decl &value)
         {
             cout<<"class declaration";

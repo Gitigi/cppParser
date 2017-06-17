@@ -35,6 +35,7 @@ namespace cpp { namespace parser
 		IMPORT_PARSER(parameter);
         IMPORT_PARSER(function_declarator);
         IMPORT_PARSER(declarator_initializer);
+        IMPORT_PARSER(exception_specifier);
 	}
 	
 	struct if_stat_class;
@@ -73,7 +74,11 @@ namespace cpp { namespace parser
     x3::rule<struct class_decl_variable,ast::class_decl_variable>class_decl_variable="class_defn_variable";
     x3::rule<struct class_decl,ast::class_decl>class_decl = "class_decl";
     x3::rule<struct memeber_spec,ast::member_spec>member_spec = "member_spec";
+    x3::rule<struct member_initializer_para,ast::member_initializer_para>member_initializer_para = "member_initializer_para";
+    x3::rule<struct member_initializer_brace,ast::member_initializer_brace>member_initializer_brace = "member_initializer_brace";
+    x3::rule<struct member_initializer,ast::member_initializer>member_initializer = "member_initializer";
     x3::rule<struct class_constructor,ast::class_constructor>class_constructor = "class_constructor";
+    x3::rule<struct class_constructor2,ast::class_constructor>class_constructor2 = "class_constructor2";
     x3::rule<struct label,ast::label>label = "label";
     x3::rule<struct enum_defn,ast::enum_defn>enum_defn = "enum_defn";
     x3::rule<struct enumerator,ast::enumerator>enumerator="enumerator";
@@ -97,7 +102,7 @@ namespace cpp { namespace parser
 	auto const terminated_stat_def = x3::rule<struct terminated_stat,ast::terminated_stat>() %=
 	(using_stat|do_stat|enum_defn|class_decl | variable_declaration[check_type] | expression)>lit(';');
 	
-	auto const nonterminated_stat_def = directive|while_stat|for_stat|switch_expr|function|
+	auto const nonterminated_stat_def = directive|while_stat|for_stat|switch_expr|class_constructor2|function|
         if_stat|block_stat|null_stat|try_stat|namespace_stat|template_decl;
 	
 	auto const block_stat_def = lit('{')>>*statement>>lit('}');
@@ -142,9 +147,14 @@ namespace cpp { namespace parser
         (class_decl_defn|class_decl_variable);
     
     auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |
-        label|class_constructor| function | template_decl;
+        label|class_constructor| function | template_decl | null_stat ;
     
-    auto const class_constructor_def = -sym >> -sym>>lit('(')>>parameter>>lit(')')>>(function_body|lit(";"));
+    auto const member_initializer_para_def = identifier >> lit('(')>>parameter>>lit(')')>>-x3::string("...");
+    auto const member_initializer_brace_def = identifier >> lit('{')>>parameter>>lit('}')>>-x3::string("...");
+    auto const member_initializer_def = lit(":")>>+(member_initializer_para|member_initializer_brace);
+    
+    auto const class_constructor_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>*(member_initializer|exception_specifier)>>(function_body|lit(";"));
+    auto const class_constructor2_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>*(member_initializer|exception_specifier)>>(function_body);
     
     auto const label_def = sym >> lit(":");
     
@@ -200,7 +210,11 @@ namespace cpp { namespace parser
         class_decl_variable,
         class_decl,
         member_spec,
+        member_initializer_para,
+        member_initializer_brace,
+        member_initializer,
         class_constructor,
+        class_constructor2,
         label,
         enum_defn,
         enumerator,

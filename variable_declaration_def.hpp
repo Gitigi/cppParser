@@ -38,8 +38,9 @@ namespace cpp{namespace parser{
 	const x3::rule<struct declarator_pack,ast::declarator_pack>declarator_pack="declarator_pack";
 	const x3::rule<struct declarator_array,ast::declarator_array>declarator_array = "declarator_array";
     const x3::rule<struct declarator_array_single,ast::expression> declarator_array_single = "declarator_array_single";
-    const x3::rule<struct exception_specifier,ast::exception_specifier> exception_specifier = "exception_specifier";
+    const x3::rule<struct yesexception_specifier,ast::yesexception_specifier> yesexception_specifier = "yesexception_specifier";
     const x3::rule<struct noexcpetion_specifier,ast::noexception_specifier>noexception_specifier = "noexception_specifier";
+    const exception_specifier_type exception_specifier = "exception_specifier";
 	const x3::rule<struct declarator_function,ast::declarator_function>declarator_function = "declarator_function";
 	const x3::rule<struct declarator_func_array,ast::declarator_func_array>declarator_func_array = "declarator_func_array";
 	const x3::rule<struct declarator_comp,ast::declarator_comp>declarator_comp = "declarator_comp";
@@ -59,10 +60,11 @@ namespace cpp{namespace parser{
 	auto const declarator_pack_def = lit("...")>> -declarator;
 	auto const declarator_array_single_def =lit('[')>>(expression|x3::eps)>>lit(']');
 	auto const declarator_array_def = +(declarator_array_single);
-    auto const exception_specifier_def = lit("throw")>>lit('(')>>-(identifier % ",")>>lit(')');
+    auto const yesexception_specifier_def = lit("throw")>>lit('(')>>-((identifier>>-lit("...")) % ",")>>lit(')');
     auto const noexception_specifier_def = lit("noexcept")>>-(lit('(')>>expression>>lit(')'));
+    auto const exception_specifier_def = yesexception_specifier|noexception_specifier;
 	auto const declarator_function_def = lit('(')>>-(parameter)>>lit(')')>>
-        *(exception_specifier|noexception_specifier)
+        *(exception_specifier)
         >>-(((lit("=")>>lit("0")) | lit("overide")|lit("final")));
 	auto const declarator_func_array_def = declarator_function | declarator_array;
 	auto const declarator_comp_def = declarator_noptr>>-declarator_func_array;
@@ -82,7 +84,7 @@ namespace cpp{namespace parser{
 	};
     
     auto const function_declarator_def=function_declarator_type() %= *qualifiers>>-identifier>>x3::eps[check_long]>>x3::omit[*qualifiers[add_spec]]
-        >>declarator_noptr>>lit('(')>>-(parameter)>>lit(')')>>*(exception_specifier|noexception_specifier);
+        >>declarator_noptr>>lit('(')>>-(parameter)>>lit(')')>>*(yesexception_specifier|noexception_specifier);
 	
     auto const variable_declaration_def = variable_declaration_type{} 
 	%= *qualifiers>>identifier>>x3::omit[*qualifiers[add_spec]] >>(declarator_initializer|x3::eps) % ",";
@@ -104,8 +106,9 @@ namespace cpp{namespace parser{
 		declarator_pack,
         declarator_array_single,
 		declarator_array,
-        exception_specifier,
+        yesexception_specifier,
         noexception_specifier,
+        exception_specifier,
 		declarator_function,
 		declarator_func_array,
 		declarator_comp,
@@ -145,6 +148,11 @@ namespace cpp{
         return parser::declarator_initializer;
     }
 	
+    parser::exception_specifier_type const &exception_specifier()
+    {
+        return parser::exception_specifier;
+    }
+    
 }
 
 #endif

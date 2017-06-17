@@ -33,6 +33,11 @@ namespace cpp
         typedef x3::rule<function_declarator_class,ast::function_declarator> function_declarator_type;
         typedef function_declarator_type::id  function_declarator_id;
         BOOST_SPIRIT_DECLARE(function_declarator_type);
+        
+        struct exception_specifier_class;
+        typedef x3::rule<exception_specifier_class,ast::exception_specifier> exception_specifier_type;
+        typedef exception_specifier_type::id exception_specifier_id;
+        BOOST_SPIRIT_DECLARE(exception_specifier_type);
 	}
 
 	parser::variable_declaration_type const &variable_declaration();
@@ -44,6 +49,8 @@ namespace cpp
     parser::function_declarator_type const &function_declarator();
     
     parser::declarator_initializer_type const &declarator_initializer();
+    
+    parser::exception_specifier_type const &exception_specifier();
 }
 
 #endif

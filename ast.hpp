@@ -293,7 +293,7 @@ namespace cpp{namespace ast{
 		parameter params;
 	};
     
-    struct exception_specifier
+    struct yesexception_specifier
     {
         std::list<identifier> excepted;
     };
@@ -302,11 +302,17 @@ namespace cpp{namespace ast{
     {
         boost::optional<expression> condition;
     };
+    
+    struct exception_specifier : x3::variant<yesexception_specifier,noexception_specifier>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
 	
 	struct declarator_function
 	{
 		parameter params;
-        std::list<x3::variant<exception_specifier,noexception_specifier>> exception_spec;
+        std::list<exception_specifier> exception_spec;
 	};
 	
 	
@@ -328,7 +334,7 @@ namespace cpp{namespace ast{
         identifier type;
         declarator_noptr name;
         parameter params;
-        std::list<x3::variant<exception_specifier,noexception_specifier>> exception_spec;
+        std::list<x3::variant<yesexception_specifier,noexception_specifier>> exception_spec;
     };
 	
     
@@ -349,6 +355,7 @@ namespace cpp{ namespace ast{
     struct namespace_stat;
     struct using_stat;
     struct template_template_parameter;
+    class class_constructor;
     
     struct template_type_parameter
     {
@@ -480,7 +487,7 @@ namespace cpp{ namespace ast{
 	
 	struct nonterminated_stat : x3::variant<block_stat,if_stat,null_stat,try_stat,function,
         x3::forward_ast<switch_expr>,for_stat,while_stat,directive,
-        x3::forward_ast<namespace_stat>,template_decl>
+        x3::forward_ast<namespace_stat>,template_decl,x3::forward_ast<class_constructor>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -491,7 +498,6 @@ namespace cpp{ namespace ast{
 	{
 	};
     
-    class class_constructor;
     
     struct label
     {
@@ -499,7 +505,7 @@ namespace cpp{ namespace ast{
     };
     
     struct member_spec : x3::variant<label,function,variable_declaration,x3::forward_ast<class_constructor>,
-        x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>,template_decl>
+        x3::forward_ast<class_decl>,x3::forward_ast<enum_defn>,template_decl,null_stat>
     {
         using base_type::base_type;
         using base_type::operator=;
@@ -538,11 +544,31 @@ namespace cpp{ namespace ast{
         std::vector<enumerator> enumerators;
     };
     
+    struct member_initializer_para
+    {
+        identifier member;
+        parameter params;
+        std::string pack;
+    };
+    
+    struct member_initializer_brace
+    {
+        identifier member;
+        parameter params;
+        std::string pack;
+    };
+    
+    struct member_initializer
+    {
+        std::list<x3::variant<member_initializer_para,member_initializer_brace>> init;
+    };
+    
     struct class_constructor
     {
-        std::string type;
-        std::string name;
+        char delta;
+        identifier name;
         parameter params;
+        std::list<x3::variant<member_initializer,exception_specifier>> init;
         boost::optional<function_body> defn;
     };
     

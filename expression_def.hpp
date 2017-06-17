@@ -144,6 +144,7 @@ auto const postfix_expr_def = (x3::attr(std::string("+++")) >> primary_expr >> l
 		| x3::string("*") > access
 		| x3::string("&") > access
 		| x3::string("sizeof") > access
+		| x3::string("sizeof...") > access
 		| x3::string("delete") > access;
 	
 	

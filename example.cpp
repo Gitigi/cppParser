@@ -132,3 +132,29 @@ void Q::V::g() {} // OK: global namespace encloses Q
 
 template <typename Iterator>
 using error_handler = x3::error_handler<Iterator>;
+
+
+#include "wx/ipc.h"
+
+#define NOTECODE_PORT "5048"
+
+class stServer
+{
+public:
+	wxConnectionBase *OnAcceptConnection(const wxString &topic);
+};
+
+class stClient
+{
+public:
+	stClient(){};
+	wxConnectionBase *OnMakeConnection();
+};
+
+class stConnection
+{
+public:
+	stConnection(){}
+	~stConnection(){}
+	bool OnExecute(const wxString &topic,const void *data,size_t size,wxIPCFormat format);
+};
