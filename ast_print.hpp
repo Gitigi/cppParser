@@ -415,6 +415,44 @@ namespace cpp{namespace ast{
 			}
 		}
         
+        void operator()(const decl_func &value)
+        {
+            if(const identifier *iden = boost::get<identifier>(&value.name))
+            {
+                printExpression()(*iden);
+            }else{
+                cout<<"( ";
+                (*this)(boost::get<decl_function>(value.name));
+                cout<<" )";
+            }
+            cout<<"(";
+            (*this)(value.param);
+            cout<<")";
+        }
+        
+        void operator()(const decl_func_ptr &value)
+        {
+            cout<<value.pointers;
+            (*this)(value.decl);
+        }
+        
+        void operator()(const decl_func_lref &value)
+        {
+            cout<<"&";
+            (*this)(value.decl);
+        }
+        
+        void operator()(const decl_func_rref &value)
+        {
+            cout<<"&&";
+            (*this)(value.decl);
+        }
+        
+        void operator()(const decl_function &value)
+        {
+            boost::apply_visitor(*this,value);
+        }
+        
         void operator()(const function &value)
         {
             for(const auto &s : value.decl.spec)
@@ -424,7 +462,6 @@ namespace cpp{namespace ast{
 			printExpression()(value.decl.type);
             cout<<" ";
             (*this)(value.decl.name);
-            (*this)(value.decl.params);
             
             if(boost::get<x3::forward_ast<statements>>(&value.defn))
             {

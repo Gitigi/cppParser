@@ -158,3 +158,8 @@ public:
 	~stConnection(){}
 	bool OnExecute(const wxString &topic,const void *data,size_t size,wxIPCFormat format);
 };
+
+void (*fp03())(const std::string&)
+{
+    return f0;
+}

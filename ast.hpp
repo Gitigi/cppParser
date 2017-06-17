@@ -328,12 +328,46 @@ namespace cpp{namespace ast{
 		boost::optional<declarator_func_array> func_array;
 	};
     
+    struct decl_func;
+    struct decl_func_ptr;
+    struct decl_func_lref;
+    struct decl_func_rref;
+    struct decl_function : x3::variant<x3::forward_ast<decl_func>,
+        x3::forward_ast<decl_func_ptr>,
+        x3::forward_ast<decl_func_lref>,
+        x3::forward_ast<decl_func_rref>>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
+    
+    struct decl_func
+    {
+        x3::variant<identifier,decl_function> name;
+        parameter param;
+    };
+    
+    struct decl_func_ptr
+    {
+        std::string pointers;
+        decl_function decl;
+    };
+    
+    struct decl_func_lref
+    {
+        decl_function decl;
+    };
+    
+    struct decl_func_rref
+    {
+        decl_function decl;
+    };
+    
     struct function_declarator
     {
         std::vector<std::string> spec;
         identifier type;
-        declarator_noptr name;
-        parameter params;
+        decl_function name;
         std::list<x3::variant<yesexception_specifier,noexception_specifier>> exception_spec;
     };
 	
