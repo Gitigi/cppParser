@@ -292,10 +292,21 @@ namespace cpp{namespace ast{
 		new_array number;
 		parameter params;
 	};
+    
+    struct exception_specifier
+    {
+        std::list<identifier> excepted;
+    };
+    
+    struct noexception_specifier
+    {
+        boost::optional<expression> condition;
+    };
 	
 	struct declarator_function
 	{
 		parameter params;
+        std::list<x3::variant<exception_specifier,noexception_specifier>> exception_spec;
 	};
 	
 	
@@ -317,6 +328,7 @@ namespace cpp{namespace ast{
         identifier type;
         declarator_noptr name;
         parameter params;
+        std::list<x3::variant<exception_specifier,noexception_specifier>> exception_spec;
     };
 	
     
