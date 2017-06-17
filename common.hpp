@@ -223,6 +223,7 @@ namespace cpp{ namespace parser{
 			("switch")
 			("break")
 			("class")
+            ("struct")
 			("decltype")
 			("default")
 			("if")

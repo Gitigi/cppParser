@@ -107,7 +107,7 @@ namespace cpp{namespace parser{
 	
 	auto operand_def = number | string | identifier;
 	
-	auto const primary_expr_def = operand |( '('>>expression>>')');
+	auto const primary_expr_def = operand |(( '('>>expression>>')')>>!(!lit('(')>>expression));
 	
 	auto const argument_expr_def = -(assignment % lit(','));
     auto checkNotNumberString = [](auto const &ctx){
@@ -159,7 +159,7 @@ auto const postfix_expr_def = (x3::attr(std::string("+++")) >> primary_expr >> l
 	
 	auto const c_cast_def = lit('(')>>identifier>>lit(')')>>expression;
 	
-	auto const pointToMember_def = (unary_expr|new_expr|c_cast) >> *((x3::string(".*")>symbol) | (x3::string("->*")>symbol));
+	auto const pointToMember_def = (c_cast|unary_expr|new_expr) >> *((x3::string(".*")>symbol) | (x3::string("->*")>symbol));
 	
 	auto multiplicativeOp = x3::rule<class multiplicativeOp,std::string>{} = 
 		(	x3::string("*")

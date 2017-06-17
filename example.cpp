@@ -163,3 +163,5 @@ void (*fp03())(const std::string&)
 {
     return f0;
 }
+
+wxString filename((char *)data);
