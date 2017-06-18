@@ -82,6 +82,11 @@ namespace cpp{namespace ast{
 		void operator()(const double value){
 			cout<<value;
 		}
+        
+        void operator()(const lambda &value)
+        {
+            cout<<"lambda";
+        }
 		void operator()(const signed_ &value){
 			if(value.sign == "+++" || value.sign == "---")
 			{

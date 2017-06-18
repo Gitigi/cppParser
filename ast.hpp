@@ -48,13 +48,17 @@ namespace cpp{namespace ast{
 	struct c_cast;
 	struct parameter;
 	struct variable_declaration;
+    struct lambda;
+    
 	struct Null
 	{
 		
 	};
 	
 	struct operand : x3::variant<Null,double,x3::forward_ast<symbol>,x3::forward_ast<identifier>,x3::forward_ast<string>,
-					x3::forward_ast<signed_>,x3::forward_ast<new_expr>,x3::forward_ast<c_cast>,x3::forward_ast<argument>,x3::forward_ast<expression>,x3::forward_ast<triExpression>>
+					x3::forward_ast<signed_>,x3::forward_ast<new_expr>,x3::forward_ast<c_cast>,x3::forward_ast<argument>,
+                    x3::forward_ast<expression>,x3::forward_ast<triExpression>,
+                    x3::forward_ast<lambda>>
 	{
 		using base_type::base_type;
 		using base_type::operator=;
@@ -549,6 +553,11 @@ namespace cpp{ namespace ast{
 	{
 	};
     
+    struct lambda
+    {
+        parameter param;
+        statements body;
+    };
     
     struct label
     {

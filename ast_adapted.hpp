@@ -11,6 +11,7 @@ BOOST_FUSION_ADAPT_STRUCT(cpp::ast::symbol,str)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::string, str)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::identifier_single, name,template_params);
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::identifier, scopeOperator,names)
+BOOST_FUSION_ADAPT_STRUCT(cpp::ast::lambda,param,body)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::signed_, sign,operand_)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::operation, operator_,operand_)
 BOOST_FUSION_ADAPT_STRUCT(cpp::ast::doubleOperation, firstOperator,firstOperand,secondOperator,secondOperand)

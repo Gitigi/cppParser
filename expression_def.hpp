@@ -7,6 +7,7 @@
 #include "ast_adapted.hpp"
 #include "expression.hpp"
 #include "variable_declaration.hpp"
+#include "statement.hpp"
 #include "common.hpp"
 #include "error_handler.hpp"
 
@@ -21,6 +22,7 @@ namespace cpp{namespace parser{
         IMPORT_PARSER(variable_declaration);
         IMPORT_PARSER(variable_declaration_single);
         IMPORT_PARSER(parameter);
+        IMPORT_PARSER(statements);
 	}
     
     
@@ -57,6 +59,7 @@ namespace cpp{namespace parser{
 	x3::rule<class template_arguments,ast::template_arguments>template_arguments = "template_arguments";
 	x3::rule<struct identifier_single,ast::identifier_single>identifier_single = "identifier_single";
 	identifier_type identifier = "identifier";
+    x3::rule<struct lambda,ast::lambda> lambda = "lambda";
 	x3::rule<operand_class,ast::operand>operand = "operand";
 	
 	expression_type expression = "expression";
@@ -104,8 +107,11 @@ namespace cpp{namespace parser{
 	auto const identifier_single_def=x3::rule<struct identifier_single,ast::identifier_single>{} %= 
 		sym>>-template_arguments;
 	auto const identifier_def = -x3::string("::")>>identifier_single % "::";
+    
+    auto const lambda_def = lit('[')>>lit(']')>>lit('(')>>-parameter>>lit(')')>>
+        lit('{')>>statements>>lit('}');
 	
-	auto operand_def = number | string | identifier;
+	auto operand_def = number | string | identifier | lambda;
 	
 	auto const primary_expr_def = operand |(( '('>>expression>>')')>>!(!lit('(')>>expression));
 	
@@ -234,7 +240,7 @@ auto const postfix_expr_def = (x3::attr(std::string("+++")) >> primary_expr >> l
 		new_expr,new_array_single,new_array,new_pointer,new_function,new_declaration_open,new_declaration_close,new_declaration,c_cast,
 		bitwiseAnd,bitwiseXor,bitwiseOr,
 		logicalAnd,logicalOr,conditional,assignment,
-		throw_expr,comma
+		throw_expr,comma,lambda
         )
 	
 	struct operand_class : x3::annotate_on_success{};
