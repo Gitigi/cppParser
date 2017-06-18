@@ -209,7 +209,7 @@ namespace cpp { namespace parser
     
     auto const break_cont_def = x3::string("break")|x3::string("continue");
     auto const goto_stat_def = lit("goto")>>identifier;
-    auto const return_stat_def = lit("return") >> (expression | aggregate);
+    auto const return_stat_def = lit("return") >> -(expression | aggregate);
     
 	auto const statement_def = nonterminated_stat | terminated_stat;
 	auto const statements_def = *statement;
