@@ -226,6 +226,7 @@ namespace cpp{ namespace parser{
 			("case")
 			("switch")
 			("break")
+            ("continue")
 			("class")
             ("struct")
 			("decltype")
@@ -244,7 +245,9 @@ namespace cpp{ namespace parser{
             ("static")
             ("virtual")
             ("template")
-            ("const");
+            ("const")
+            ("return")
+            ("goto");
 		}
 	}reservedWords;
 	

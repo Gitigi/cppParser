@@ -38,6 +38,11 @@ namespace cpp
         typedef x3::rule<exception_specifier_class,ast::exception_specifier> exception_specifier_type;
         typedef exception_specifier_type::id exception_specifier_id;
         BOOST_SPIRIT_DECLARE(exception_specifier_type);
+        
+        struct aggregate_class;
+        typedef x3::rule<aggregate_class,ast::aggregate>aggregate_type;
+        typedef aggregate_type::id aggregate_id;
+        BOOST_SPIRIT_DECLARE(aggregate_type);
 	}
 
 	parser::variable_declaration_type const &variable_declaration();
@@ -51,6 +56,8 @@ namespace cpp
     parser::declarator_initializer_type const &declarator_initializer();
     
     parser::exception_specifier_type const &exception_specifier();
+    
+    parser::aggregate_type const &aggregate();
 }
 
 #endif

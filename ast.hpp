@@ -432,10 +432,27 @@ namespace cpp{ namespace ast{
         using base_type::base_type;
         using base_type::operator=;
     };
+    
+    struct break_cont
+    {
+        std::string name;
+    };
+    
+    struct goto_stat
+    {
+        identifier loc;
+    };
+    
+    struct return_stat : x3::variant<expression,aggregate>
+    {
+        using base_type::base_type;
+        using base_type::operator=;
+    };
 	
 	struct terminated_stat : x3::variant<variable_declaration,expression,x3::forward_ast<class_decl>,
         x3::forward_ast<enum_defn>,x3::forward_ast<do_stat>,
-        x3::forward_ast<using_stat>>
+        x3::forward_ast<using_stat>,
+        break_cont,goto_stat,return_stat>
 	{
 		using base_type::base_type;
 		using base_type::operator=;

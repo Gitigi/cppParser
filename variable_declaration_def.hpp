@@ -49,7 +49,7 @@ namespace cpp{namespace parser{
 	const parameter_type parameter("parameter");
     const function_declarator_type function_declarator("function_declarator");
     const x3::rule<struct aggregate_item,ast::aggregate_item>aggregate_item = "aggregate_item";
-    const x3::rule<struct aggregate,ast::aggregate>aggregate = "aggregate";
+    const aggregate_type aggregate = "aggregate";
     
     const x3::rule<struct decl_func,ast::decl_func>decl_func = "decl_func";
     const x3::rule<struct decl_func_bracket,ast::decl_function>decl_func_bracket = "decl_func_bracket";
@@ -172,6 +172,11 @@ namespace cpp{
     parser::exception_specifier_type const &exception_specifier()
     {
         return parser::exception_specifier;
+    }
+    
+    parser::aggregate_type const &aggregate()
+    {
+        return parser::aggregate;
     }
     
 }

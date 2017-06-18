@@ -616,6 +616,24 @@ namespace cpp{namespace ast{
         {
             cout<<"template";
         }
+        
+        void operator()(const break_cont &value)
+        {
+            cout<<value.name;
+        }
+        
+        void operator()(const goto_stat &value)
+        {
+            cout<<"goto ";
+            printExpression()(value.loc);
+        }
+        
+        void operator()(const return_stat &value)
+        {
+            cout<<"return ";
+            printExpression p;
+            boost::apply_visitor(p,value);
+        }
 		
 	};
 }}

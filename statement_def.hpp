@@ -36,6 +36,7 @@ namespace cpp { namespace parser
         IMPORT_PARSER(function_declarator);
         IMPORT_PARSER(declarator_initializer);
         IMPORT_PARSER(exception_specifier);
+        IMPORT_PARSER(aggregate);
 	}
 	
 	struct if_stat_class;
@@ -99,9 +100,13 @@ namespace cpp { namespace parser
     x3::rule<struct template_parameter,ast::template_parameter> template_parameter = "template_parameter";
     x3::rule<struct template_body,ast::template_body> template_body = "template_body";
     x3::rule<struct template_dec,ast::template_decl> template_decl = "template_decl";
+    x3::rule<struct break_cont,ast::break_cont>break_cont = "break_cont";
+    x3::rule<struct got_stat,ast::goto_stat>goto_stat = "goto_stat";
+    x3::rule<struct return_stat,ast::return_stat>return_stat = "return_stat";
 	
 	auto const terminated_stat_def = x3::rule<struct terminated_stat,ast::terminated_stat>() %=
-	(using_stat|do_stat|enum_defn|class_decl | variable_declaration[check_type] | expression)>lit(';');
+	(using_stat|do_stat|enum_defn|class_decl | variable_declaration[check_type] |
+        break_cont|goto_stat|return_stat|expression)>lit(';');
 	
 	auto const nonterminated_stat_def = directive|while_stat|for_stat|switch_expr|class_constructor2|function|
         if_stat|block_stat|null_stat|try_stat|namespace_stat|template_decl;
@@ -200,6 +205,11 @@ namespace cpp { namespace parser
     
     auto const template_decl_def = lit("template")>>lit("<")>>-(template_parameter%",")>>lit(">")>>template_body;
 		
+    
+    auto const break_cont_def = x3::string("break")|x3::string("continue");
+    auto const goto_stat_def = lit("goto")>>identifier;
+    auto const return_stat_def = lit("return") >> (expression | aggregate);
+    
 	auto const statement_def = nonterminated_stat | terminated_stat;
 	auto const statements_def = *statement;
 
@@ -241,7 +251,10 @@ namespace cpp { namespace parser
         template_template_parameter,
         template_parameter,
         template_body,
-        template_decl
+        template_decl,
+        break_cont,
+        goto_stat,
+        return_stat
 		);
 
     struct statement_class : x3::annotate_on_success {};
