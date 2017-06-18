@@ -37,6 +37,7 @@ namespace cpp { namespace parser
         IMPORT_PARSER(declarator_initializer);
         IMPORT_PARSER(exception_specifier);
         IMPORT_PARSER(aggregate);
+        IMPORT_PARSER(argument_expr);
 	}
 	
 	struct if_stat_class;
@@ -159,12 +160,12 @@ namespace cpp { namespace parser
     auto const member_spec_def = (enum_defn>>lit(";"))|(class_decl>>lit(";"))|(variable_declaration>>lit(';')) |
         label|class_constructor| function | template_decl | null_stat ;
     
-    auto const member_initializer_para_def = identifier >> lit('(')>>parameter>>lit(')')>>-x3::string("...");
-    auto const member_initializer_brace_def = identifier >> lit('{')>>parameter>>lit('}')>>-x3::string("...");
-    auto const member_initializer_def = lit(":")>>+(member_initializer_para|member_initializer_brace);
+    auto const member_initializer_para_def = identifier >> lit('(')>>argument_expr>>lit(')')>>-x3::string("...");
+    auto const member_initializer_brace_def = identifier >> lit('{')>>argument_expr>>lit('}')>>-x3::string("...");
+    auto const member_initializer_def = lit(":")>>((member_initializer_para|member_initializer_brace)%",");
     
-    auto const class_constructor_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>*(member_initializer|exception_specifier)>>(function_body|lit(";"));
-    auto const class_constructor2_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>*(member_initializer|exception_specifier)>>(function_body);
+    auto const class_constructor_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>-((member_initializer|exception_specifier)%",")>>(function_body|lit(";"));
+    auto const class_constructor2_def = -x3::char_('~')>>identifier>>lit('(')>>-parameter>>lit(')')>>-((member_initializer|exception_specifier)%",")>>(function_body);
     
     auto const label_def = sym >> lit(":");
     

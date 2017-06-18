@@ -605,14 +605,14 @@ namespace cpp{ namespace ast{
     struct member_initializer_para
     {
         identifier member;
-        parameter params;
+        argument params;
         std::string pack;
     };
     
     struct member_initializer_brace
     {
         identifier member;
-        parameter params;
+        argument params;
         std::string pack;
     };
     
